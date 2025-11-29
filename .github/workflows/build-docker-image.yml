@@ -7,7 +7,6 @@ on:
         required: true
         type: choice
         options:
-          - app
           - organize-tool
       build_amd64:
         description: 'Build for linux/amd64'
@@ -107,7 +106,7 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.prep.outputs.DH_REPO }}:${{ github.event.inputs.dockerfile }}-${{ needs.prep.outputs.GH_BUILD_TAG }}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.prep.outputs.DH_REPO }}:${{ github.event.inputs.dockerfile }}-${{ needs.prep.outputs.GH_LATEST_TAG }}
-          build-args: |
+          build-args: |-
             BUILD_TIME=${{ needs.prep.outputs.BUILD_TIME }}
             DOCKERFILE=${{ github.event.inputs.dockerfile }}
             IMAGE_FOR_TESTING=${{ github.event.inputs.image_for_testing }}
