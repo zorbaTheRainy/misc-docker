@@ -32,6 +32,12 @@ on:
 jobs:
   prep:
     runs-on: ubuntu-latest
+    outputs:
+      DH_REPO: ${{ steps.repo_name.outputs.DH_REPO }}
+      BUILD_TIME: ${{ steps.date.outputs.BUILD_TIME }}
+      GH_BUILD_TAG: ${{ steps.tag.outputs.GH_BUILD_TAG }}
+      GH_LATEST_TAG: ${{ steps.tag.outputs.GH_LATEST_TAG }}
+      PLATFORMS: ${{ steps.set_platforms.outputs.PLATFORMS }}
     steps:
       - name: Show workflow inputs
         run: |
@@ -97,7 +103,7 @@ jobs:
           context: .
           file: Dockerfile.${{ github.event.inputs.dockerfile }}
           push: true
-          platforms: ${{ steps.set_platforms.outputs.PLATFORMS }}
+          platforms: ${{ needs.prep.outputs.PLATFORMS }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.prep.outputs.DH_REPO }}:${{ github.event.inputs.dockerfile }}-${{ needs.prep.outputs.GH_BUILD_TAG }}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.prep.outputs.DH_REPO }}:${{ github.event.inputs.dockerfile }}-${{ needs.prep.outputs.GH_LATEST_TAG }}
