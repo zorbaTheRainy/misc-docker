@@ -9,6 +9,18 @@ on:
         options:
           - app
           - organize-tool
+      build_amd64:
+        description: 'Build for linux/amd64'
+        type: boolean
+        default: true
+      build_arm64:
+        description: 'Build for linux/arm64'
+        type: boolean
+        default: true
+      build_armv7:
+        description: 'Build for linux/arm/v7'
+        type: boolean
+        default: true
       image_for_testing:
         description: 'Is image for testing purposes?'
         required: true
@@ -41,6 +53,21 @@ jobs:
             echo "GH_BUILD_TAG=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
             echo "GH_LATEST_TAG=latest" >> $GITHUB_OUTPUT
           fi
+      - name: Set platforms
+        id: set_platforms
+        run: |
+          platforms=""
+          if [ "${{ github.event.inputs.build_amd64 }}" = "true" ]; then
+            platforms="${platforms}linux/amd64,"
+          fi
+          if [ "${{ github.event.inputs.build_arm64 }}" = "true" ]; then
+            platforms="${platforms}linux/arm64,"
+          fi
+          if [ "${{ github.event.inputs.build_armv7 }}" = "true" ]; then
+            platforms="${platforms}linux/arm/v7,"
+          fi
+          platforms="${platforms%,}" # trim trailing comma
+          echo "PLATFORMS=$platforms" >> $GITHUB_OUTPUT
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
@@ -58,7 +85,7 @@ jobs:
           context: .
           file: Dockerfile.${{ github.event.inputs.dockerfile }}
           push: true
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: ${{ steps.set_platforms.outputs.PLATFORMS }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo_name.outputs.DH_REPO }}:${{ github.event.inputs.dockerfile }}-${{ steps.tag.outputs.GH_BUILD_TAG }}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo_name.outputs.DH_REPO }}:${{ github.event.inputs.dockerfile }}-${{ steps.tag.outputs.GH_LATEST_TAG }}
