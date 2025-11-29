@@ -1,0 +1,14 @@
+
+
+# ###################################################################
+# SERVICES
+# ###################################################################
+services:
+  organize-tool:
+    image: ghcr.io/open-webui/open-webui:cuda
+    container_name: organize-tool-croned
+    restart: unless-stopped
+    volumes:
+      - ./organize-tool-crontab:/etc/cron.d/organize-tool-crontab   # mount your crontab file here
+      - ./config.yaml:/config/config.yaml  # organize-tool config file
+      - ./data:/data # the directory you wish organized

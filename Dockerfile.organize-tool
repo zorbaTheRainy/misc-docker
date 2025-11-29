@@ -1,0 +1,29 @@
+# https://github.com/tfeldmann/organize
+
+FROM python:3.12-slim
+
+# Install cron and organize-tool add-ons
+RUN apt-get -y update && apt-get install -y --no-install-recommends \
+    exiftool \
+    poppler-utils \
+    cron \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install organize
+RUN pip install --no-cache-dir organize-tool
+
+# Copy needed files
+COPY programs/organize-tool/config.yaml /config/config.yaml
+COPY programs/organize-tool/organize-tool-crontab /etc/cron.d/organize-tool-crontab
+COPY programs/organize-tool/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+
+# Create directories
+WORKDIR /app
+VOLUME ["/config", "/data", "/etc/cron.d"]
+
+
+# Default command runs cron in foreground
+CMD ["docker-entrypoint.sh"]
