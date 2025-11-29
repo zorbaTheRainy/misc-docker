@@ -1,0 +1,10 @@
+FROM alpine:latest
+
+# Install basic utilities
+RUN apk add --no-cache bash curl
+
+# Set working directory
+WORKDIR /app
+
+# Default command
+CMD ["bash"]

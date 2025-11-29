@@ -1,0 +1,20 @@
+# ignore Python VE files
+.venv
+.vscode
+__pycache__
+
+# ignore MacOS crap
+.DS_Store
+
+# ignore VS Code settings
+.vscode/
+
+# ignore tmp files
+tmp*.*
+*.log
+*.bak
+
+# ignore development files
+.env
+test
+folders/
