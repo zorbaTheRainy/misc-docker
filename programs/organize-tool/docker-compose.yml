@@ -5,7 +5,7 @@
 # ###################################################################
 services:
   organize-tool:
-    image: ghcr.io/open-webui/open-webui:cuda
+    image: zorbatherainy/misc_images:organize-tool-latest
     container_name: organize-tool-croned
     restart: unless-stopped
     volumes:
