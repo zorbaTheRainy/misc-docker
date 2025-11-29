@@ -27,7 +27,7 @@ jobs:
     - name: Setup DockerHub Repo Name
       id: repo_name
       run: |
-        echo "DH_REPO=Misc-Images" >> $GITHUB_OUTPUT
+        echo "DH_REPO=misc_images" >> $GITHUB_OUTPUT
         
     - name: Run date command
       id: date
