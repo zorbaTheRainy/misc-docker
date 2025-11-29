@@ -38,7 +38,7 @@ jobs:
     - name: Set GH_TAG
       id: tag
       run: |
-        if [ "$image_for_testing" = "true" ]; then
+        if [ "${{ github.event.inputs.image_for_testing }}" = "true" ]; then
           buildTag=$(date +%Y-%m-%d-%H-%M)
           echo "GH_BUILD_TAG=$buildTag" >> $GITHUB_OUTPUT
           echo "GH_LATEST_TAG=testing" >> $GITHUB_OUTPUT
