@@ -8,6 +8,9 @@ LABEL org.opencontainers.image.created=$BUILD_TIME \
       org.opencontainers.image.dockerfile=$DOCKERFILE \
       org.opencontainers.image.image_for_testing=$IMAGE_FOR_TESTING
       
+# Set the default config file location
+ENV ORGANIZE_CONFIG=/config/config.yaml
+
 # Install cron and organize-tool add-ons
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
     exiftool \
