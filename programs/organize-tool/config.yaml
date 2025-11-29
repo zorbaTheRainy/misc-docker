@@ -1,0 +1,4 @@
+rules:
+  - name: Print hello
+    actions:
+      - echo: "Hello from organize!"
