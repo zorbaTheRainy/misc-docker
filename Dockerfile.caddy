@@ -43,24 +43,21 @@ FROM caddy:builder AS builder
 # Build Caddy with modules
 
 RUN \
-    PLUGINS="\
+    PLUGINS=""; \
             # Layer 4 (TCP/UDP) support
-            --with github.com/mholt/caddy-l4 \ 
+            PLUGINS="$PLUGINS --with github.com/mholt/caddy-l4"; \ 
             # Layer 4 (TCP/UDP) support - JSON schema validation
-            --with github.com/abiosoft/caddy-json-schema \
+            PLUGINS="$PLUGINS --with github.com/abiosoft/caddy-json-schema"; \
             # Log encoder module for custom log formats 
-            --with github.com/caddyserver/transform-encoder \
+            PLUGINS="$PLUGINS --with github.com/caddyserver/transform-encoder"; \
             # Cloudflare - IP ranges to identify CF visitors
-            --with github.com/WeidiDeng/caddy-cloudflare-ip  \
+            PLUGINS="$PLUGINS --with github.com/WeidiDeng/caddy-cloudflare-ip";  \
             # Cloudflare - DNS provider
-            --with github.com/caddy-dns/cloudflare \
+            PLUGINS="$PLUGINS --with github.com/caddy-dns/cloudflare"; \
             # Got to love the teapot
-            --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ; \
-            "; \
+            PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
     if [ "$ARG_02" = "true" ]; then \
-      PLUGINS="$PLUGINS \
-            --with github.com/hslatman/caddy-crowdsec-bouncer \
-            "; \
+          PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
     fi; \
     PLUGINS=$(echo "$PLUGINS" | sed 's/^[[:space:]]*//'); \
     echo "Building Caddy ${ARG_01} with plugins:" && \
@@ -102,11 +99,11 @@ FROM caddy:${ARG_01}
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 
 # Add metadata labels (visible via `docker inspect`)
-LABEL org.opencontainers.image.created=$BUILD_TIME \
-      org.opencontainers.image.version_custom=$VERSION \
-      org.opencontainers.image.dockerfile=$DOCKERFILE \
-      org.opencontainers.image.image_for_testing=$IMAGE_FOR_TESTING \
-      org.opencontainers.image.image_for_testing=$ARG_01 \
-      org.opencontainers.image.image_for_testing=$ARG_02
+LABEL org.opencontainers.image.created=${BUILD_TIME}
+LABEL org.opencontainers.image.version_custom=${VERSION}
+LABEL org.opencontainers.image.dockerfile=${DOCKERFILE}
+LABEL org.opencontainers.image.image_for_testing=${IMAGE_FOR_TESTING}
+LABEL org.opencontainers.image.image_for_testing=${ARG_01}
+LABEL org.opencontainers.image.image_for_testing=${ARG_02}
 
 # EXPOSE and CMD are in the base caddy image
