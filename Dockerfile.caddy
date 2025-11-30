@@ -54,24 +54,24 @@ RUN set -eux; \
     PLUGINS="$PLUGINS --with github.com/WeidiDeng/caddy-cloudflare-ip"; \
     # Cloudflare DNS provider
     PLUGINS="$PLUGINS --with github.com/caddy-dns/cloudflare"; \
-            # Got to love the teapot
+    # Got to love the teapot
     PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
     # check if WAN or LAN build
-    if [ "$ARG_02" = "true" ]; then \
+    if [ "${ARG_02}" = "true" ]; then \
         echo "Building for an external (WAN) usage..."; \
-        # GeoIP2 module
-        PLUGINS="$PLUGINS --with github.com/zhangjiayin/caddy-geoip2"; \
-        # CrowdSec bouncer
-        PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
-        # Coraza WAF
-        PLUGINS="$PLUGINS --with github.com/corazawaf/coraza-caddy"; \
     else \
         echo "Building for an internal (LAN) usage..."; \
     fi; \
     echo "Plugins: $PLUGINS"
 
 
-    # if [ "$ARG_02" = "true" ]; then \
+    # # GeoIP2 module
+    # PLUGINS="$PLUGINS --with github.com/zhangjiayin/caddy-geoip2"; \
+    # # CrowdSec bouncer
+    # PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
+    # # Coraza WAF
+    # PLUGINS="$PLUGINS --with github.com/corazawaf/coraza-caddy"; \
+# if [ "$ARG_02" = "true" ]; then \
     #   # CrowdSec bouncer
     #   PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
     # fi; \
