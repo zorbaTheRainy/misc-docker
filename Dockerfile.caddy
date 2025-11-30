@@ -1,11 +1,12 @@
 # syntax=docker/dockerfile:1
 
-# Boolean build-time arg: true = cloudflare, false = transform
+# Build-time args; passed from GitHub actions
 ARG ARG_01=latest # Caddy version e.g., "v2.10.2"
 ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
 
 
 # ---- Build stage ----
+ARG ARG_01=latest # Caddy version e.g., "v2.10.2"
 FROM caddy:builder AS builder
 
 
@@ -72,6 +73,10 @@ RUN if [ "$ARG_02" != "true" ]; then \
 
 
 # ---- Final stage ----
+
+# Redeclare build-time args
+ARG ARG_01=latest # Caddy version e.g., "v2.10.2"
+
 FROM caddy:${ARG_01}
 
 # Copy the custom-built Caddy binary
