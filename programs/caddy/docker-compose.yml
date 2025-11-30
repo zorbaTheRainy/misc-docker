@@ -1,0 +1,37 @@
+# ###################################################################
+# VOLUMES (external vols must be create BEFORE the stack is deployed)
+# ###################################################################
+volumes:
+  # caddy
+  caddy_config:
+
+    
+# ###################################################################
+# SERVICES
+# ###################################################################
+services:
+  # ###################################################################
+  # Reverse Proxy services
+  caddy: 
+    image: zorbatherainy/misc_images:caddy-latest
+    container_name: caddy
+    hostname: caddy
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Copenhagen
+      # caddy 
+      # --------------------------------------------
+      # passthrough ENV Vars (for Caddyfile)
+      # - GEOIPUPDATE_ACCOUNT_ID=${GEOIPUPDATE_ACCOUNT_ID}
+      # - GEOIPUPDATE_LICENSE_KEY=${GEOIPUPDATE_LICENSE_KEY}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      - TARGET_DOMAIN=${TARGET_DOMAIN}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro                             # sync to host time
+      # caddy
+      # --------------------------------------------
+      # config files
+      - ${DIR_ROOT}/caddy/Caddyfile:/etc/caddy/Caddyfile
+      # directories
+      - caddy_config:/config
+    network_mode: host
