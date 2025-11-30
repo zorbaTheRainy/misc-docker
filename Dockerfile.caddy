@@ -1,0 +1,79 @@
+# syntax=docker/dockerfile:1
+
+# Boolean build-time arg: true = cloudflare, false = transform
+ARG ARG_01=latest # Caddy version e.g., "v2.10.2"
+ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
+
+
+# ---- Build stage ----
+FROM caddy:builder AS builder
+
+
+# ------------------------------------------------------------------
+# Modules required
+# ------------------------------------------------------------------
+# [__] https://github.com/hairyhenderson/caddy-teapot-module
+		# http.handlers.teapot
+# [01] https://github.com/caddy-dns/cloudflare
+		# dns.providers.cloudflare
+# [02] https://github.com/WeidiDeng/caddy-cloudflare-ip
+		# http.ip_sources.cloudflare
+# [03] https://github.com/zhangjiayin/caddy-geoip2
+		# geoip2
+		# http.handlers.geoip2
+# [04] https://github.com/caddyserver/transform-encoder
+		# caddy.logging.encoders.formatted
+		# caddy.logging.encoders.transform
+# [05] https://github.com/hslatman/caddy-crowdsec-bouncer
+		# crowdsec
+		# http.handlers.crowdsec
+		# layer4.matchers.crowdsec
+# [06] https://github.com/corazawaf/coraza-caddy
+		# http.handlers.waf 
+# [07] https://github.com/mholt/caddy-l4
+		# layer4.handlers.*
+		# layer4.matchers.*
+		# layer4.proxy.*
+		# tls.handshake_match.alpn
+# [08] https://github.com/tailscale/caddy-tailscale
+		# http.authentication.providers.tailscale
+		# http.reverse_proxy.transport.tailscale
+		# tailscale
+        
+# Build Caddy with modules
+RUN if [ "$ARG_02" != "true" ]; then \
+        echo "Building for an internal (LAN) usage..." && \
+        xcaddy build ${ARG_01} \
+            --with github.com/mholt/caddy-l4 \                                # Layer 4 (TCP/UDP) support
+            --with github.com/abiosoft/caddy-json-schema \                    # Layer 4 (TCP/UDP) support - JSON schema validation
+            --with github.com/caddyserver/transform-encoder \                 # Log encoder module for custom log formats 
+            --with github.com/WeidiDeng/caddy-cloudflare-ip  \                # Cloudflare - IP ranges to identify CF visitors
+            --with github.com/caddy-dns/cloudflare \                          # Cloudflare - DNS provider
+            --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ;
+    else \
+        echo "Building for an external (WAN) usage..." && \
+        xcaddy build --with github.com/caddyserver/transform-encoder ; \
+    fi
+
+#     caddyserver/transform-encoder
+# mholt/caddy-l4
+# hslatman/caddy-crowdsec-bouncer
+# abiosoft/caddy-json-schema
+# hairyhenderson/caddy-teapot-module
+# zhangjiayin/caddy-geoip2
+
+
+# ---- Final stage ----
+FROM caddy:${ARG_01}
+
+# Copy the custom-built Caddy binary
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+
+# Copy your Caddyfile (optional)
+# COPY Caddyfile /etc/caddy/Caddyfile
+
+# Expose ports
+EXPOSE 80 443
+
+# Run Caddy
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
