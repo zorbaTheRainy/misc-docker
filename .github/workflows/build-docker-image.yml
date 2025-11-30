@@ -128,6 +128,7 @@ jobs:
             DOCKERFILE=${{ github.event.inputs.dockerfile }}
             IMAGE_FOR_TESTING=${{ github.event.inputs.image_for_testing }}
             VERSION=${{ github.event.inputs.version }}
-            # ARG_01=${{ github.event.inputs.arg_01 }}
-            ${{ github.event.inputs.arg_01 && format('ARG_01={0}', github.event.inputs.arg_01) }}
             ARG_02=${{ github.event.inputs.arg_02 }}
+            ${{ github.event.inputs.arg_01 && format('ARG_01={0}', github.event.inputs.arg_01) }}
+            # ARG_01=${{ github.event.inputs.arg_01 }}
+
