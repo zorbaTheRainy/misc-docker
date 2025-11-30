@@ -28,6 +28,14 @@ COPY programs/organize-tool/organize-tool-crontab /etc/cron.d/organize-tool-cron
 COPY programs/organize-tool/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
+# Add metadata labels (visible via `docker inspect`)
+ARG VERSION DOCKERFILE IMAGE_FOR_TESTING ARG_01 ARG_02 BUILD_TIME
+LABEL org.opencontainers.image.created=${BUILD_TIME}
+LABEL org.opencontainers.image.version_custom=${VERSION}
+LABEL org.opencontainers.image.dockerfile=${DOCKERFILE}
+LABEL org.opencontainers.image.image_for_testing=${IMAGE_FOR_TESTING}
+# LABEL org.opencontainers.image.arg_01=${ARG_01}
+# LABEL org.opencontainers.image.arg_02=${ARG_02}
 
 # Create directories
 WORKDIR /app
