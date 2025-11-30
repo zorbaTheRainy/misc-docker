@@ -75,7 +75,7 @@ RUN set -eux; \
     if [ "$ARG_01" = "latest" ]; then \
         xcaddy build  $PLUGINS; \
     else \
-        xcaddy build "v$ARG_01" $PLUGINS; \
+        xcaddy build "v${ARG_01}" $PLUGINS; \
     fi
 
 
