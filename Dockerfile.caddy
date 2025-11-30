@@ -5,10 +5,6 @@ ARG ARG_01=latest # Caddy version e.g., "2.10.2"
 ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
 
 
-# ---- Build stage ----
-FROM caddy:builder AS builder
-
-
 # ------------------------------------------------------------------
 # Modules required
 # ------------------------------------------------------------------
@@ -42,8 +38,10 @@ FROM caddy:builder AS builder
         
 # Build Caddy with modules
 
-# Need to redeclare AGRS so RUN can see them <rolls eyes>
-ARG ARG_01=latest # Caddy version e.g., "2.10.2"
+# ---- Build stage for Latest ----
+FROM caddy:builder AS builder_latest
+    
+    # Need to redeclare AGRS so RUN can see them <rolls eyes>
 ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
 RUN set -eux; \
     PLUGINS=""; \
@@ -71,12 +69,41 @@ RUN set -eux; \
         echo "Building for an internal (LAN) usage..."; \
     fi; \
     echo "Plugins: $PLUGINS"; \
-    # ARG_01 builds for a given version of caddy
-    if [ "$ARG_01" = "latest" ]; then \
-        xcaddy build  $PLUGINS; \
+    xcaddy build $PLUGINS
+
+
+# ---- Build stage for Latest ----
+FROM caddy:${ARG_01}-builder AS builder_versioned
+    
+    # Need to redeclare AGRS so RUN can see them <rolls eyes>
+ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
+RUN set -eux; \
+    PLUGINS=""; \
+    # Layer 4 (TCP/UDP) support
+    PLUGINS="$PLUGINS --with github.com/mholt/caddy-l4"; \
+    # Layer 4 (TCP/UDP) support - JSON schema validation
+    PLUGINS="$PLUGINS --with github.com/abiosoft/caddy-json-schema"; \
+    # Log encoder module for custom log formats 
+    PLUGINS="$PLUGINS --with github.com/caddyserver/transform-encoder"; \
+    # Cloudflare - IP ranges to identify CF visitors
+    PLUGINS="$PLUGINS --with github.com/WeidiDeng/caddy-cloudflare-ip"; \
+    # Cloudflare DNS provider
+    PLUGINS="$PLUGINS --with github.com/caddy-dns/cloudflare"; \
+    # Got to love the teapot
+    PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
+    if [ "$ARG_02" = "true" ]; then \
+        echo "Building for an external (WAN) usage..."; \
+        # GeoIP2 module
+        PLUGINS="$PLUGINS --with github.com/zhangjiayin/caddy-geoip2"; \
+        # CrowdSec bouncer
+        PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
+        # Coraza WAF
+        PLUGINS="$PLUGINS --with github.com/corazawaf/coraza-caddy"; \
     else \
-        xcaddy build "v${ARG_01}" $PLUGINS; \
-    fi
+        echo "Building for an internal (LAN) usage..."; \
+    fi; \
+    echo "Plugins: $PLUGINS"; \
+    xcaddy build $PLUGINS
 
 
 # ---- Final stage ----
@@ -86,7 +113,9 @@ FROM caddy:${ARG_01}
 RUN apk add --no-cache bash
 
 # Copy the custom-built Caddy binary
-COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY --from=builder_latest /usr/bin/caddy /usr/bin/caddy
+# or (depending if version failed)
+COPY --from=builder_versioned /usr/bin/caddy /usr/bin/caddy
 
 # Add metadata labels (visible via `docker inspect`)
 ARG VERSION DOCKERFILE IMAGE_FOR_TESTING ARG_01 ARG_02 BUILD_TIME
