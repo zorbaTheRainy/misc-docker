@@ -47,16 +47,6 @@ jobs:
       GH_LATEST_TAG: ${{ steps.tag.outputs.GH_LATEST_TAG }}
       PLATFORMS: ${{ steps.set_platforms.outputs.PLATFORMS }}
     steps:
-      - name: Show workflow inputs
-        run: |
-          echo "Dockerfile: ${{ github.event.inputs.dockerfile }}"
-          echo "Build amd64: ${{ github.event.inputs.build_amd64 }}"
-          echo "Build arm64: ${{ github.event.inputs.build_arm64 }}"
-          echo "Build armv7: ${{ github.event.inputs.build_armv7 }}"
-          echo "Version: ${{ github.event.inputs.version }}"
-          echo "Image for testing: ${{ github.event.inputs.image_for_testing }}"
-          echo "Arg 01 (string):  ${{ github.event.inputs.arg_01 }}"
-          echo "Arg 02 (boolean): ${{ github.event.inputs.arg_02 }}"
       - name: Setup DockerHub Repo Name
         id: repo_name
         run: |
@@ -92,6 +82,22 @@ jobs:
           fi
           platforms="${platforms%,}" # trim trailing comma
           echo "PLATFORMS=$platforms" >> $GITHUB_OUTPUT
+      - name: Show workflow variables
+        run: |
+          echo "Dockerfile: ${{ github.event.inputs.dockerfile }}"
+          echo "Build amd64: ${{ github.event.inputs.build_amd64 }}"
+          echo "Build arm64: ${{ github.event.inputs.build_arm64 }}"
+          echo "Build armv7: ${{ github.event.inputs.build_armv7 }}"
+          echo "Version: ${{ github.event.inputs.version }}"
+          echo "Image for testing: ${{ github.event.inputs.image_for_testing }}"
+          echo "Arg 01 (string):  ${{ github.event.inputs.arg_01 }}"
+          echo "Arg 02 (boolean): ${{ github.event.inputs.arg_02 }}"
+          echo "------------------------------------------------------------------"
+          echo "DH_REPO: ${{ steps.repo_name.outputs.DH_REPO }}"
+          echo "BUILD_TIME: ${{ steps.date.outputs.BUILD_TIME }}"
+          echo "GH_BUILD_TAG: ${{ steps.tag.outputs.GH_BUILD_TAG }}"
+          echo "GH_LATEST_TAG: ${{ steps.tag.outputs.GH_LATEST_TAG }}"
+          echo "PLATFORMS: ${{ steps.set_platforms.outputs.PLATFORMS }}"
   build:
     runs-on: ubuntu-latest
     needs: prep
@@ -122,5 +128,6 @@ jobs:
             DOCKERFILE=${{ github.event.inputs.dockerfile }}
             IMAGE_FOR_TESTING=${{ github.event.inputs.image_for_testing }}
             VERSION=${{ github.event.inputs.version }}
-            ARG_01=${{ github.event.inputs.arg_01 }}
+            # ARG_01=${{ github.event.inputs.arg_01 }}
+            ${{ github.event.inputs.arg_01 && format('ARG_01={0}', github.event.inputs.arg_01) }}
             ARG_02=${{ github.event.inputs.arg_02 }}
