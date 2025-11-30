@@ -58,10 +58,17 @@ RUN set -eux; \
     PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
     if [ "${ARG_02}" = "true" ]; then \
         echo "Building for an external (WAN) usage..."; \
+        # GeoIP2 module
+        PLUGINS="$PLUGINS --with github.com/zhangjiayin/caddy-geoip2"; \
+        # CrowdSec bouncer
+        PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
+        # Coraza WAF
+        PLUGINS="$PLUGINS --with github.com/corazawaf/coraza-caddy"; \
     else \
         echo "Building for an internal (LAN) usage..."; \
     fi; \
-    echo "Plugins: $PLUGINS"
+    echo "Plugins: $PLUGINS"; \
+    xcaddy build --caddy-version "${ARG_01}" $PLUGINS
 
 RUN exit 1
 
