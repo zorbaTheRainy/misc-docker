@@ -70,7 +70,6 @@ RUN set -eux; \
     echo "Plugins: $PLUGINS"; \
     xcaddy build --caddy-version "${ARG_01}" $PLUGINS
 
-RUN exit 1
 
 
     # # GeoIP2 module
@@ -119,7 +118,7 @@ RUN exit 1
 FROM caddy:${ARG_01}
 
 # Copy the custom-built Caddy binary
-# COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 
 # Add metadata labels (visible via `docker inspect`)
 ARG VERSION DOCKERFILE IMAGE_FOR_TESTING ARG_01 ARG_02 BUILD_TIME
