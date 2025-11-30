@@ -20,14 +20,22 @@ on:
         description: 'Build for linux/arm/v7'
         type: boolean
         default: false
-      image_for_testing:
-        description: 'Is image for testing purposes?'
-        required: true
-        type: boolean
       version:
         description: 'Version tag'
         required: true
         default: '1.0.0'
+      image_for_testing:
+        description: 'Is image for testing purposes?'
+        required: true
+        type: boolean
+      arg_01:
+        description: 'ARG for Dockerfile (string)'
+        required: false
+        default: ''
+      arg_02:
+        description: 'ARG for Dockerfile (boolean)'
+        type: boolean
+        default: false
 jobs:
   prep:
     runs-on: ubuntu-latest
@@ -111,3 +119,5 @@ jobs:
             DOCKERFILE=${{ github.event.inputs.dockerfile }}
             IMAGE_FOR_TESTING=${{ github.event.inputs.image_for_testing }}
             VERSION=${{ github.event.inputs.version }}
+            ARG_01=${{ github.event.inputs.arg_01 }}
+            ARG_02=${{ github.event.inputs.arg_02 }}
