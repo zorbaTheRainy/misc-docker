@@ -56,6 +56,8 @@ RUN set -eux; \
     PLUGINS="$PLUGINS --with github.com/caddy-dns/cloudflare"; \
             # Got to love the teapot
     PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
+    echo "$PLUGINS"
+
     # if [ "$ARG_02" = "true" ]; then \
     #   # CrowdSec bouncer
     #   PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
