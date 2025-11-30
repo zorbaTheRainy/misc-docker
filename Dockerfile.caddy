@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build-time args; passed from GitHub actions
-ARG ARG_01=latest # Caddy version e.g., "v2.10.2"
+ARG ARG_01=latest # Caddy version e.g., "2.10.2"
 ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
 
 
@@ -41,27 +41,51 @@ FROM caddy:builder AS builder
 		# tailscale
         
 # Build Caddy with modules
-RUN if [ "$ARG_02" != "true" ]; then \
-        echo "Building for an internal (LAN) usage..." && \
-        xcaddy build ${ARG_01} \
+
+RUN \
+    PLUGINS="\
+            # Layer 4 (TCP/UDP) support
             --with github.com/mholt/caddy-l4 \ 
+            # Layer 4 (TCP/UDP) support - JSON schema validation
             --with github.com/abiosoft/caddy-json-schema \
+            # Log encoder module for custom log formats 
             --with github.com/caddyserver/transform-encoder \
+            # Cloudflare - IP ranges to identify CF visitors
             --with github.com/WeidiDeng/caddy-cloudflare-ip  \
             # Cloudflare - DNS provider
             --with github.com/caddy-dns/cloudflare \
+            # Got to love the teapot
             --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ; \
-    else \
-        echo "Building for an external (WAN) usage..." && \
-        xcaddy build --with github.com/caddyserver/transform-encoder ; \
-    fi
-    # xcaddy build ${ARG_01} \
-    # --with github.com/mholt/caddy-l4 \                                # Layer 4 (TCP/UDP) support
-    # --with github.com/abiosoft/caddy-json-schema \                    # Layer 4 (TCP/UDP) support - JSON schema validation
-    # --with github.com/caddyserver/transform-encoder \                 # Log encoder module for custom log formats 
-    # --with github.com/WeidiDeng/caddy-cloudflare-ip  \                # Cloudflare - IP ranges to identify CF visitors
-    # --with github.com/caddy-dns/cloudflare \                          # Cloudflare - DNS provider
-    # --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ;
+            "; \
+    if [ "$ARG_02" = "true" ]; then \
+      PLUGINS="$PLUGINS
+            --with github.com/hslatman/caddy-crowdsec-bouncer
+            "; \
+    fi; \
+    PLUGINS=$(echo "$PLUGINS" | sed 's/^[[:space:]]*//'); \
+    echo "Building Caddy ${ARG_01} with plugins:" && \
+    printf '%s\n' "$PLUGINS" && \
+    xcaddy build --caddy-version ${ARG_01} $PLUGINS
+    
+    # RUN if [ "$ARG_02" != "true" ]; then \
+    #     echo "Building for an internal (LAN) usage..." && \
+    #     xcaddy build ${ARG_01} \
+    #         # Layer 4 (TCP/UDP) support
+    #         --with github.com/mholt/caddy-l4 \ 
+    #         # Layer 4 (TCP/UDP) support - JSON schema validation
+    #         --with github.com/abiosoft/caddy-json-schema \
+    #         # Log encoder module for custom log formats 
+    #         --with github.com/caddyserver/transform-encoder \
+    #         # Cloudflare - IP ranges to identify CF visitors
+    #         --with github.com/WeidiDeng/caddy-cloudflare-ip  \
+    #         # Cloudflare - DNS provider
+    #         --with github.com/caddy-dns/cloudflare \
+    #         # Got to love the teapot
+    #         --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ; \
+    # else \
+    #     echo "Building for an external (WAN) usage..." && \
+    #     xcaddy build --with github.com/caddyserver/transform-encoder ; \
+    # fi
 
 #     caddyserver/transform-encoder
 # mholt/caddy-l4
@@ -77,11 +101,12 @@ FROM caddy:${ARG_01}
 # Copy the custom-built Caddy binary
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 
-# Copy your Caddyfile (optional)
-# COPY Caddyfile /etc/caddy/Caddyfile
+# Add metadata labels (visible via `docker inspect`)
+LABEL org.opencontainers.image.created=$BUILD_TIME \
+      org.opencontainers.image.version_custom=$VERSION \
+      org.opencontainers.image.dockerfile=$DOCKERFILE \
+      org.opencontainers.image.image_for_testing=$IMAGE_FOR_TESTING \
+      org.opencontainers.image.image_for_testing=$ARG_01 \
+      org.opencontainers.image.image_for_testing=$ARG_02
 
-# Expose ports
-EXPOSE 80 443
-
-# Run Caddy
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+# EXPOSE and CMD are in the base caddy image
