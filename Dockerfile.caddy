@@ -42,6 +42,8 @@ FROM caddy:builder AS builder
         
 # Build Caddy with modules
 
+# Promote ARGs to ENV so they’re visible in RUN
+ENV ARG_02=${ARG_02}
 RUN set -eux; \
     PLUGINS=""; \
     # Layer 4 (TCP/UDP) support
