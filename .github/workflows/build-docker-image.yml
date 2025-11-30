@@ -55,9 +55,8 @@ jobs:
           echo "Build armv7: ${{ github.event.inputs.build_armv7 }}"
           echo "Version: ${{ github.event.inputs.version }}"
           echo "Image for testing: ${{ github.event.inputs.image_for_testing }}"
-          echo "Arg 01 (string):  ${{ github.event.inputs.arg_01 }}
-          echo "Arg 02 (boolean): ${{ github.event.inputs.arg_02 }}
-
+          echo "Arg 01 (string):  ${{ github.event.inputs.arg_01 }}"
+          echo "Arg 02 (boolean): ${{ github.event.inputs.arg_02 }}"
       - name: Setup DockerHub Repo Name
         id: repo_name
         run: |
