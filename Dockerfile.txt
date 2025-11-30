@@ -43,7 +43,6 @@ FROM caddy:builder AS builder
 # Build Caddy with modules
 
 # Promote ARGs to ENV so they’re visible in RUN
-ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
 ENV ARG_02=$ARG_02
 RUN set -eux; \
     PLUGINS=""; \
