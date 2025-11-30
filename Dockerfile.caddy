@@ -63,7 +63,7 @@ RUN set -eux; \
     fi; \
     echo "Plugins: $PLUGINS"
 
-RUN exit(1)
+RUN exit 1
 
 
     # # GeoIP2 module
@@ -120,7 +120,7 @@ LABEL org.opencontainers.image.created=${BUILD_TIME}
 LABEL org.opencontainers.image.version_custom=${VERSION}
 LABEL org.opencontainers.image.dockerfile=${DOCKERFILE}
 LABEL org.opencontainers.image.image_for_testing=${IMAGE_FOR_TESTING}
-LABEL org.opencontainers.image.image_for_testing=${ARG_01}
-LABEL org.opencontainers.image.image_for_testing=${ARG_02}
+LABEL org.opencontainers.image.arg_01=${ARG_01}
+LABEL org.opencontainers.image.arg_02=${ARG_02}
 
 # EXPOSE and CMD are in the base caddy image
