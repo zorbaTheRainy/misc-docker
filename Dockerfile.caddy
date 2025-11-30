@@ -50,7 +50,7 @@ RUN if [ "$ARG_02" != "true" ]; then \
             --with github.com/WeidiDeng/caddy-cloudflare-ip  \
             # Cloudflare - DNS provider
             --with github.com/caddy-dns/cloudflare \
-            --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ; 
+            --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ; \
     else \
         echo "Building for an external (WAN) usage..." && \
         xcaddy build --with github.com/caddyserver/transform-encoder ; \
