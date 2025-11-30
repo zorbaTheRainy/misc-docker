@@ -59,7 +59,7 @@ RUN \
             "; \
     if [ "$ARG_02" = "true" ]; then \
       PLUGINS="$PLUGINS \
-            --with github.com/hslatman/caddy-crowdsec-bouncer
+            --with github.com/hslatman/caddy-crowdsec-bouncer \
             "; \
     fi; \
     PLUGINS=$(echo "$PLUGINS" | sed 's/^[[:space:]]*//'); \
