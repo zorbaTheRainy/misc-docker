@@ -42,10 +42,9 @@ FROM caddy:builder AS builder
         
 # Build Caddy with modules
 
-# Promote ARGs to ENV so they’re visible in RUN
+# Need to redeclare AGRS so RUN can see them <rolls eyes>
 ARG ARG_01=latest # Caddy version e.g., "2.10.2"
 ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
-# ENV ARG_02=$ARG_02
 RUN set -eux; \
     PLUGINS=""; \
     # Layer 4 (TCP/UDP) support
@@ -72,54 +71,15 @@ RUN set -eux; \
         echo "Building for an internal (LAN) usage..."; \
     fi; \
     echo "Plugins: $PLUGINS"; \
+    # ARG_01 builds for a given veriosn of caddy
     xcaddy build "${ARG_01}" $PLUGINS
-
-
-
-    # # GeoIP2 module
-    # PLUGINS="$PLUGINS --with github.com/zhangjiayin/caddy-geoip2"; \
-    # # CrowdSec bouncer
-    # PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
-    # # Coraza WAF
-    # PLUGINS="$PLUGINS --with github.com/corazawaf/coraza-caddy"; \
-# if [ "$ARG_02" = "true" ]; then \
-    #   # CrowdSec bouncer
-    #   PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
-    # fi; \
-    # echo "Building Caddy ${ARG_01} with plugins:"; \
-    # printf '%s\n' "$PLUGINS"; \
-    # xcaddy build --caddy-version "${ARG_01}" $PLUGINS
-    
-    # RUN if [ "$ARG_02" != "true" ]; then \
-    #     echo "Building for an internal (LAN) usage..." && \
-    #     xcaddy build ${ARG_01} \
-    #         # Layer 4 (TCP/UDP) support
-    #         --with github.com/mholt/caddy-l4 \ 
-    #         # Layer 4 (TCP/UDP) support - JSON schema validation
-    #         --with github.com/abiosoft/caddy-json-schema \
-    #         # Log encoder module for custom log formats 
-    #         --with github.com/caddyserver/transform-encoder \
-    #         # Cloudflare - IP ranges to identify CF visitors
-    #         --with github.com/WeidiDeng/caddy-cloudflare-ip  \
-    #         # Cloudflare - DNS provider
-    #         --with github.com/caddy-dns/cloudflare \
-    #         # Got to love the teapot
-    #         --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ; \
-    # else \
-    #     echo "Building for an external (WAN) usage..." && \
-    #     xcaddy build --with github.com/caddyserver/transform-encoder ; \
-    # fi
-
-#     caddyserver/transform-encoder
-# mholt/caddy-l4
-# hslatman/caddy-crowdsec-bouncer
-# abiosoft/caddy-json-schema
-# hairyhenderson/caddy-teapot-module
-# zhangjiayin/caddy-geoip2
 
 
 # ---- Final stage ----
 FROM caddy:${ARG_01}
+
+# Install bash
+RUN apk add --no-cache bash
 
 # Copy the custom-built Caddy binary
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
