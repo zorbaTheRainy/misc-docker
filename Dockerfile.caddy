@@ -58,7 +58,7 @@ RUN set -eux; \
     PLUGINS="$PLUGINS --with github.com/caddy-dns/cloudflare"; \
     # Got to love the teapot
     PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
-    if [ "${ARG_02}" = "true" ]; then \
+    if [ "$ARG_02" = "true" ]; then \
         echo "Building for an external (WAN) usage..."; \
         # GeoIP2 module
         PLUGINS="$PLUGINS --with github.com/zhangjiayin/caddy-geoip2"; \
