@@ -43,21 +43,20 @@ FROM caddy:builder AS builder
 # Build Caddy with modules
 
 RUN set -eux; \
-    PLUGINS=""; \
-    # Layer 4 (TCP/UDP) support
-    PLUGINS="$PLUGINS --with github.com/mholt/caddy-l4"; \
-    # Layer 4 (TCP/UDP) support - JSON schema validation
-    PLUGINS="$PLUGINS --with github.com/abiosoft/caddy-json-schema"; \
-    # Log encoder module for custom log formats 
-    PLUGINS="$PLUGINS --with github.com/caddyserver/transform-encoder"; \
-    # Cloudflare - IP ranges to identify CF visitors
-    PLUGINS="$PLUGINS --with github.com/WeidiDeng/caddy-cloudflare-ip"; \
-    # Cloudflare DNS provider
-    PLUGINS="$PLUGINS --with github.com/caddy-dns/cloudflare"; \
-    # Got to love the teapot
-    PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
-    # check if WAN or LAN build
-    if [ "${ARG_02}" = "true" ]; then \
+    # PLUGINS=""; \
+    # # Layer 4 (TCP/UDP) support
+    # PLUGINS="$PLUGINS --with github.com/mholt/caddy-l4"; \
+    # # Layer 4 (TCP/UDP) support - JSON schema validation
+    # PLUGINS="$PLUGINS --with github.com/abiosoft/caddy-json-schema"; \
+    # # Log encoder module for custom log formats 
+    # PLUGINS="$PLUGINS --with github.com/caddyserver/transform-encoder"; \
+    # # Cloudflare - IP ranges to identify CF visitors
+    # PLUGINS="$PLUGINS --with github.com/WeidiDeng/caddy-cloudflare-ip"; \
+    # # Cloudflare DNS provider
+    # PLUGINS="$PLUGINS --with github.com/caddy-dns/cloudflare"; \
+    # # Got to love the teapot
+    # PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
+    # if [ "${ARG_02}" = "true" ]; then \
         echo "Building for an external (WAN) usage..."; \
     else \
         echo "Building for an internal (LAN) usage..."; \
@@ -111,7 +110,7 @@ RUN set -eux; \
 FROM caddy:${ARG_01}
 
 # Copy the custom-built Caddy binary
-COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+# COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 
 # Add metadata labels (visible via `docker inspect`)
 ARG VERSION DOCKERFILE IMAGE_FOR_TESTING ARG_01 ARG_02 BUILD_TIME
