@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build-time args; passed from GitHub actions
-ARG ARG_01=latest # Caddy version e.g., "2.10.2"
+# ARG ARG_01=latest # Caddy version e.g., "2.10.2"
 ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
 
 
@@ -42,9 +42,9 @@ ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
 FROM caddy:builder AS builder
 
 # Need to redeclare AGRS so RUN can see them <rolls eyes>
-ARG ARG_01=latest # Caddy version e.g., "2.10.2"
+# ARG ARG_01=latest # Caddy version e.g., "2.10.2"
 ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
-ENV CADDY_VERSION="v$ARG_01"
+# ENV CADDY_VERSION="v$ARG_01"
 RUN set -eux; \
     PLUGINS=""; \
     # Layer 4 (TCP/UDP) support
@@ -70,13 +70,14 @@ RUN set -eux; \
     else \
         echo "Building for an internal (LAN) usage..."; \
     fi; \
-    echo "CADDY_VERSION: $CADDY_VERSION"; \
+    # echo "CADDY_VERSION: $CADDY_VERSION"; \
     echo "Plugins: $PLUGINS"; \
     xcaddy build $PLUGINS
 
 
 # ---- Final stage ----
-FROM caddy:${ARG_01}
+# FROM caddy:${ARG_01}
+FROM caddy:latest
 
 # Install bash
 RUN apk add --no-cache bash
@@ -90,7 +91,7 @@ LABEL org.opencontainers.image.created=${BUILD_TIME}
 LABEL org.opencontainers.image.version_custom=${VERSION}
 LABEL org.opencontainers.image.dockerfile=${DOCKERFILE}
 LABEL org.opencontainers.image.image_for_testing=${IMAGE_FOR_TESTING}
-LABEL org.opencontainers.image.arg_01=${ARG_01}
+# LABEL org.opencontainers.image.arg_01=${ARG_01}
 LABEL org.opencontainers.image.arg_02=${ARG_02}
 
 # EXPOSE and CMD are in the base caddy image
