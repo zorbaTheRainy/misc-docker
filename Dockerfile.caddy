@@ -76,7 +76,6 @@ RUN if [ "$ARG_02" != "true" ]; then \
 
 # Redeclare build-time args
 ARG ARG_01=latest # Caddy version e.g., "v2.10.2"
-
 FROM caddy:${ARG_01}
 
 # Copy the custom-built Caddy binary
