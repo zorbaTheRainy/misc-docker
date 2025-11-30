@@ -58,7 +58,7 @@ RUN \
             --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ; \
             "; \
     if [ "$ARG_02" = "true" ]; then \
-      PLUGINS="$PLUGINS
+      PLUGINS="$PLUGINS \
             --with github.com/hslatman/caddy-crowdsec-bouncer
             "; \
     fi; \
