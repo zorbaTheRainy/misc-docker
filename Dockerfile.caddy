@@ -56,13 +56,13 @@ RUN set -eux; \
     PLUGINS="$PLUGINS --with github.com/caddy-dns/cloudflare"; \
             # Got to love the teapot
     PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
-    if [ "$ARG_02" = "true" ]; then \
-      # CrowdSec bouncer
-      PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
-    fi; \
-    echo "Building Caddy ${ARG_01} with plugins:"; \
-    printf '%s\n' "$PLUGINS"; \
-    xcaddy build --caddy-version "${ARG_01}" $PLUGINS
+    # if [ "$ARG_02" = "true" ]; then \
+    #   # CrowdSec bouncer
+    #   PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
+    # fi; \
+    # echo "Building Caddy ${ARG_01} with plugins:"; \
+    # printf '%s\n' "$PLUGINS"; \
+    # xcaddy build --caddy-version "${ARG_01}" $PLUGINS
     
     # RUN if [ "$ARG_02" != "true" ]; then \
     #     echo "Building for an internal (LAN) usage..." && \
@@ -99,7 +99,7 @@ FROM caddy:${ARG_01}
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 
 # Add metadata labels (visible via `docker inspect`)
-ARG BUILD_TIME
+ARG VERSION DOCKERFILE IMAGE_FOR_TESTING ARG_01 ARG_02 BUILD_TIME
 LABEL org.opencontainers.image.created=${BUILD_TIME}
 LABEL org.opencontainers.image.version_custom=${VERSION}
 LABEL org.opencontainers.image.dockerfile=${DOCKERFILE}
