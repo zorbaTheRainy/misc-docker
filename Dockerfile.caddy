@@ -44,16 +44,24 @@ FROM caddy:builder AS builder
 RUN if [ "$ARG_02" != "true" ]; then \
         echo "Building for an internal (LAN) usage..." && \
         xcaddy build ${ARG_01} \
-            --with github.com/mholt/caddy-l4 \                                # Layer 4 (TCP/UDP) support
-            --with github.com/abiosoft/caddy-json-schema \                    # Layer 4 (TCP/UDP) support - JSON schema validation
-            --with github.com/caddyserver/transform-encoder \                 # Log encoder module for custom log formats 
-            --with github.com/WeidiDeng/caddy-cloudflare-ip  \                # Cloudflare - IP ranges to identify CF visitors
-            --with github.com/caddy-dns/cloudflare \                          # Cloudflare - DNS provider
-            --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ;
+            --with github.com/mholt/caddy-l4 \ 
+            --with github.com/abiosoft/caddy-json-schema \
+            --with github.com/caddyserver/transform-encoder \
+            --with github.com/WeidiDeng/caddy-cloudflare-ip  \
+            # Cloudflare - DNS provider
+            --with github.com/caddy-dns/cloudflare \
+            --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ; 
     else \
         echo "Building for an external (WAN) usage..." && \
         xcaddy build --with github.com/caddyserver/transform-encoder ; \
     fi
+    # xcaddy build ${ARG_01} \
+    # --with github.com/mholt/caddy-l4 \                                # Layer 4 (TCP/UDP) support
+    # --with github.com/abiosoft/caddy-json-schema \                    # Layer 4 (TCP/UDP) support - JSON schema validation
+    # --with github.com/caddyserver/transform-encoder \                 # Log encoder module for custom log formats 
+    # --with github.com/WeidiDeng/caddy-cloudflare-ip  \                # Cloudflare - IP ranges to identify CF visitors
+    # --with github.com/caddy-dns/cloudflare \                          # Cloudflare - DNS provider
+    # --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0 ;
 
 #     caddyserver/transform-encoder
 # mholt/caddy-l4
