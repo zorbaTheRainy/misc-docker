@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1
 
 # Build-time args; passed from GitHub actions
+ARG ARG_01=latest # Caddy version e.g., "2.10.2"
+ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
+
+
 # ---- Build stage ----
 FROM caddy:builder AS builder
 
@@ -115,7 +119,6 @@ RUN set -eux; \
 
 
 # ---- Final stage ----
-ARG ARG_01=latest # Caddy version e.g., "2.10.2"
 FROM caddy:${ARG_01}
 
 # Copy the custom-built Caddy binary
