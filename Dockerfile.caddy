@@ -71,8 +71,12 @@ RUN set -eux; \
         echo "Building for an internal (LAN) usage..."; \
     fi; \
     echo "Plugins: $PLUGINS"; \
-    # ARG_01 builds for a given veriosn of caddy
-    xcaddy build "${ARG_01}" $PLUGINS
+    # ARG_01 builds for a given version of caddy
+    if [ "$ARG_01" = "latest" ]; then \
+        xcaddy build  $PLUGINS; \
+    else \
+        xcaddy build v"${ARG_01}" $PLUGINS; \
+    fi
 
 
 # ---- Final stage ----
