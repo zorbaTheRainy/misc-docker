@@ -58,7 +58,7 @@ RUN set -eux; \
     # Cloudflare DNS provider
     PLUGINS="$PLUGINS --with github.com/caddy-dns/cloudflare"; \
     # Authentication: Basic, Local, LDAP, OpenID Connect, OAuth 2.0 
-    PLUGINS="$PLUGINS --with https://github.com/greenpau/caddy-security"; \
+    PLUGINS="$PLUGINS --with github.com/greenpau/caddy-security"; \
     # Got to love the teapot
     PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
     if [ "$ARG_02" = "true" ]; then \
