@@ -31,10 +31,10 @@ ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
 		# layer4.matchers.*
 		# layer4.proxy.*
 		# tls.handshake_match.alpn
-# [08] https://github.com/tailscale/caddy-tailscale
-		# http.authentication.providers.tailscale
-		# http.reverse_proxy.transport.tailscale
-		# tailscale
+# [09] https://github.com/greenpau/caddy-security
+        # http.authentication.providers.authorizer authorizes access to endpoints based on the presense and content of JWT token.
+        # http.handlers.authenticator implements Form-Based, Basic, Local, LDAP, OpenID Connect, OAuth 2.0, SAML Authentication.
+
         
 # Build Caddy with modules
 
@@ -43,7 +43,7 @@ FROM caddy:builder AS builder
 
 # Need to redeclare AGRS so RUN can see them <rolls eyes>
 # ARG ARG_01=latest # Caddy version e.g., "2.10.2"
-ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
+ARG ARG_02=false  # Build for internal (LAN) usage, otherwise external (WAN)
 # ENV CADDY_VERSION="v$ARG_01"
 RUN set -eux; \
     PLUGINS=""; \
@@ -57,6 +57,8 @@ RUN set -eux; \
     PLUGINS="$PLUGINS --with github.com/WeidiDeng/caddy-cloudflare-ip"; \
     # Cloudflare DNS provider
     PLUGINS="$PLUGINS --with github.com/caddy-dns/cloudflare"; \
+    # Authentication: Basic, Local, LDAP, OpenID Connect, OAuth 2.0 
+    PLUGINS="$PLUGINS --with https://github.com/greenpau/caddy-security"; \
     # Got to love the teapot
     PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
     if [ "$ARG_02" = "true" ]; then \
