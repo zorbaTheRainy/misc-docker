@@ -103,6 +103,7 @@ COPY programs/_bash/.profile /root/.profile
 COPY programs/_bash/.profile /root/.bash_profile
 ENV BASH_ENV /root/.bashrc 
 RUN chmod +x /root/.bashrc 
+RUN echo 'if [ -f ~/.bashrc ]; then . ~/.bashrc; fi' >> /etc/profile
 
 COPY programs/_bash/.bashrc /etc/profile.d/88-aliases.sh
 RUN chmod +x /etc/profile.d/88-aliases.sh
