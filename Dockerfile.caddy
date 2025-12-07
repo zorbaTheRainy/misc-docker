@@ -83,6 +83,8 @@ FROM caddy:latest
 
 # Install bash
 RUN apk add --no-cache bash
+COPY programs/_bash/.bashrc /root/.bashrc
+COPY programs/_bash/.profile /root/.profile
 
 # Copy the custom-built Caddy binary
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
