@@ -10,15 +10,19 @@ on:
           - caddy
           - organize-tool
       build_amd64:
-        description: 'Build for linux/amd64'
+        description: 'Build for linux/amd64 (x86)'
         type: boolean
         default: true
       build_arm64:
-        description: 'Build for linux/arm64'
+        description: 'Build for linux/arm64 (Raspberry Pi 4/5, Apple Silicon)'
         type: boolean
         default: true
       build_armv7:
-        description: 'Build for linux/arm/v7'
+        description: 'Build for linux/arm/v7 (32-bit; Raspberry Pi 2/3)'
+        type: boolean
+        default: false
+      build_armv6:
+        description: 'Build for linux/arm/v6 (32-bit; Raspberry Pi 1/Zero)'
         type: boolean
         default: false
       version:
@@ -59,12 +63,23 @@ jobs:
       - name: Set tags
         id: tag
         run: |
+          version="${{ github.event.inputs.version }}"
+          dockerfile="${{ github.event.inputs.dockerfile }}"
+      
+          # If version starts with dockerfile or dockerfile-
+          if [[ "$version" == "$dockerfile"* ]]; then
+            # Remove the dockerfile prefix
+            version="${version#$dockerfile}"
+            # And trim any leading dash left over
+            version="${version#-}"
+          fi
+      
           if [ "${{ github.event.inputs.image_for_testing }}" = "true" ]; then
             buildTag=$(date +%Y-%m-%d-%H-%M)
             echo "GH_BUILD_TAG=$buildTag" >> $GITHUB_OUTPUT
             echo "GH_LATEST_TAG=testing" >> $GITHUB_OUTPUT
           else
-            echo "GH_BUILD_TAG=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "GH_BUILD_TAG=$version" >> $GITHUB_OUTPUT
             echo "GH_LATEST_TAG=latest" >> $GITHUB_OUTPUT
           fi
       - name: Set platforms
@@ -80,6 +95,9 @@ jobs:
           if [ "${{ github.event.inputs.build_armv7 }}" = "true" ]; then
             platforms="${platforms}linux/arm/v7,"
           fi
+          if [ "${{ github.event.inputs.build_armv6 }}" = "true" ]; then
+            platforms="${platforms}linux/arm/v6,"
+          fi
           platforms="${platforms%,}" # trim trailing comma
           echo "PLATFORMS=$platforms" >> $GITHUB_OUTPUT
       - name: Show workflow variables
@@ -88,6 +106,7 @@ jobs:
           echo "Build amd64: ${{ github.event.inputs.build_amd64 }}"
           echo "Build arm64: ${{ github.event.inputs.build_arm64 }}"
           echo "Build armv7: ${{ github.event.inputs.build_armv7 }}"
+          echo "Build armv6: ${{ github.event.inputs.build_armv6 }}"
           echo "Version: ${{ github.event.inputs.version }}"
           echo "Image for testing: ${{ github.event.inputs.image_for_testing }}"
           echo "Arg 01 (string):  ${{ github.event.inputs.arg_01 }}"
