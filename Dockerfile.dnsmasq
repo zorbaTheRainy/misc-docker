@@ -106,4 +106,5 @@ LABEL WEBPROC_VERSION=${WEBPROC_VERSION}
 EXPOSE 53 67/udp 68/udp 8080
 
 # Run the desired programs
-ENTRYPOINT ["webproc","--configuration-file","/etc/dnsmasq.conf","--","dnsmasq","--no-daemon"]
+# ENTRYPOINT ["webproc","--configuration-file","/etc/dnsmasq.conf","--","dnsmasq","--no-daemon"]
+ENTRYPOINT ["bash", "-lc", "exec webproc --configuration-file /etc/dnsmasq.conf -- dnsmasq --no-daemon"]
