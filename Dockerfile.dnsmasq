@@ -98,8 +98,9 @@ EXPOSE 53 67/udp 68/udp 8080
 FROM base
 # Copy the entire filesystem from the builder stage
 COPY --from=rootfs_stage / /
-COPY programs/_bash/.bashrc /etc/profile.d/custom-aliases.sh
-RUN chmod +x /etc/profile.d/custom-aliases.sh
+COPY programs/_bash/.bashrc /root/.bashrc
+COPY programs/_bash/.profile /root/.profile
+ENV BASH_ENV /root/.bashrc 
 
 ARG WEBPROC_VERSION=0.4.0
 LABEL WEBPROC_VERSION=${WEBPROC_VERSION}
