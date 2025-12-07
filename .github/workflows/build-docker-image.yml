@@ -66,15 +66,23 @@ jobs:
         run: |
           version="${{ github.event.inputs.version }}"
           dockerfile="${{ github.event.inputs.dockerfile }}"
-
-          # If version starts with dockerfile or dockerfile-
+      
+          # If version starts with dockerfile, clean it up
           if [[ "$version" == "$dockerfile"* ]]; then
-            # Remove the dockerfile prefix
             version="${version#$dockerfile}"
-            # And trim any leading dash left over
             version="${version#-}"
           fi
-
+      
+          # Sanitize version for Docker/GitHub tag rules:
+          # - Lowercase
+          # - Replace invalid chars with '-'
+          # - Trim leading/trailing separators
+          version="$(echo "$version" | tr '[:upper:]' '[:lower:]')"
+          version="$(echo "$version" | sed 's/[^a-z0-9_.-]/-/g')"
+          version="$(echo "$version" | sed 's/^-*//; s/-*$//')"
+          version="$(echo "$version" | cut -c1-128)"  # enforce max length
+      
+          # set the output variables
           if [ "${{ github.event.inputs.image_for_testing }}" = "true" ]; then
             buildTag=$(date +%Y-%m-%d-%H-%M)
             echo "GH_BUILD_TAG=$buildTag" >> $GITHUB_OUTPUT
