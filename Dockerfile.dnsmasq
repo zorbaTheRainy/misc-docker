@@ -102,7 +102,7 @@ COPY programs/_bash/.bashrc /root/.bashrc
 
 ARG WEBPROC_VERSION=0.4.0
 LABEL WEBPROC_VERSION=${WEBPROC_VERSION}
-EXPOSE 53 67/udp 68/udp 8080
+EXPOSE 53 67/udp 68/udp 8080 
 
 # Run the desired programs
 ENTRYPOINT ["webproc","--configuration-file","/etc/dnsmasq.conf","--","dnsmasq","--no-daemon"]
