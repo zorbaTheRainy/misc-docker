@@ -100,7 +100,12 @@ FROM base
 COPY --from=rootfs_stage / /
 COPY programs/_bash/.bashrc /root/.bashrc
 COPY programs/_bash/.profile /root/.profile
+COPY programs/_bash/.profile /root/.bash_profile
 ENV BASH_ENV /root/.bashrc 
+RUN chmod +x /root/.bashrc 
+
+COPY programs/_bash/.bashrc /etc/profile.d/88-aliases.sh
+RUN chmod +x /etc/profile.d/88-aliases.sh
 
 ARG WEBPROC_VERSION=0.4.0
 LABEL WEBPROC_VERSION=${WEBPROC_VERSION}
