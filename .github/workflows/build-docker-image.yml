@@ -11,19 +11,19 @@ on:
           - dnsmasq
           - organize-tool
       build_amd64:
-        description: 'Build for linux/amd64 (x86)'
+        description: 'linux/amd64 (x86)'
         type: boolean
         default: true
       build_arm64:
-        description: 'Build for linux/arm64 (Raspberry Pi 4/5, Apple Silicon)'
+        description: 'linux/arm64 (Pi 4/5, Apple M+)'
         type: boolean
         default: true
       build_armv7:
-        description: 'Build for linux/arm/v7 (32-bit; Raspberry Pi 2/3)'
+        description: 'linux/arm/v7 (32-bit; Pi 2/3)'
         type: boolean
         default: false
       build_armv6:
-        description: 'Build for linux/arm/v6 (32-bit; Raspberry Pi 1/Zero)'
+        description: 'linux/arm/v6 (32-bit; Pi 1/Zero)'
         type: boolean
         default: false
       version:
