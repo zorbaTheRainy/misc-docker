@@ -8,6 +8,7 @@ on:
         type: choice
         options:
           - caddy
+          - dnsmasq
           - organize-tool
       build_amd64:
         description: 'Build for linux/amd64 (x86)'
@@ -65,7 +66,7 @@ jobs:
         run: |
           version="${{ github.event.inputs.version }}"
           dockerfile="${{ github.event.inputs.dockerfile }}"
-      
+
           # If version starts with dockerfile or dockerfile-
           if [[ "$version" == "$dockerfile"* ]]; then
             # Remove the dockerfile prefix
@@ -73,7 +74,7 @@ jobs:
             # And trim any leading dash left over
             version="${version#-}"
           fi
-      
+
           if [ "${{ github.event.inputs.image_for_testing }}" = "true" ]; then
             buildTag=$(date +%Y-%m-%d-%H-%M)
             echo "GH_BUILD_TAG=$buildTag" >> $GITHUB_OUTPUT
@@ -150,4 +151,3 @@ jobs:
             ARG_02=${{ github.event.inputs.arg_02 }}
             ${{ github.event.inputs.arg_01 && format('ARG_01={0}', github.event.inputs.arg_01) }}
             # ARG_01=${{ github.event.inputs.arg_01 }}
-
