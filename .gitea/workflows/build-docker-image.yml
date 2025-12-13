@@ -1,0 +1,164 @@
+name: Build Docker Image
+on:
+  workflow_dispatch:
+    inputs:
+      dockerfile:
+        description: 'Dockerfile to use'
+        required: true
+        type: choice
+        options:
+          - dnsmasq
+      build_amd64:
+        description: 'linux/amd64 (x86)'
+        type: boolean
+        default: true
+      build_arm64:
+        description: 'linux/arm64 (Pi 4/5, Apple M+)'
+        type: boolean
+        default: false
+      build_armv7:
+        description: 'linux/arm/v7 (32-bit; Pi 2/3)'
+        type: boolean
+        default: false
+      build_armv6:
+        description: 'linux/arm/v6 (32-bit; Pi 1/Zero)'
+        type: boolean
+        default: false
+      version:
+        description: 'Version tag'
+        required: true
+        default: '1.0.0'
+      image_for_testing:
+        description: 'Is image for testing purposes?'
+        required: true
+        default: true
+        type: boolean
+      arg_01:
+        description: 'ARG for Dockerfile (string)'
+        required: false
+        default: ''
+      arg_02:
+        description: 'ARG for Dockerfile (boolean)'
+        type: boolean
+        default: false
+jobs:
+  prep:
+    runs-on: ubuntu-latest
+    outputs:
+      DH_REPO: ${{ steps.repo_name.outputs.DH_REPO }}
+      BUILD_TIME: ${{ steps.date.outputs.BUILD_TIME }}
+      GH_BUILD_TAG: ${{ steps.tag.outputs.GH_BUILD_TAG }}
+      GH_LATEST_TAG: ${{ steps.tag.outputs.GH_LATEST_TAG }}
+      PLATFORMS: ${{ steps.set_platforms.outputs.PLATFORMS }}
+    steps:
+      - name: Setup DockerHub Repo Name
+        id: repo_name
+        run: |
+          echo "DH_REPO=misc_images" >> $GITEA_OUTPUT
+      - name: Run date command
+        id: date
+        run: |
+          buildTime=$(date +%Y-%m-%d" "%X)
+          echo "BUILD_TIME=$buildTime" >> $GITEA_OUTPUT
+      - name: Set tags
+        id: tag
+        run: |
+          version="${{ inputs.version }}"
+          dockerfile="${{ inputs.dockerfile }}"
+      
+          # If version starts with dockerfile, clean it up
+          if [[ "$version" == "$dockerfile"* ]]; then
+            version="${version#$dockerfile}"
+            version="${version#-}"
+          fi
+      
+          # Sanitize version for Docker/GitHub tag rules:
+          # - Lowercase
+          # - Replace invalid chars with '-'
+          # - Trim leading/trailing separators
+          version="$(echo "$version" | tr '[:upper:]' '[:lower:]')"
+          version="$(echo "$version" | sed 's/[^a-z0-9_.-]/-/g')"
+          version="$(echo "$version" | sed 's/^-*//; s/-*$//')"
+          version="$(echo "$version" | cut -c1-128)"  # enforce max length
+      
+          # set the output variables
+          if [ "${{ inputs.image_for_testing }}" = "true" ]; then
+            buildTag=$(date +%Y-%m-%d-%H-%M)
+            echo "GH_BUILD_TAG=$buildTag" >> $GITEA_OUTPUT
+            echo "GH_LATEST_TAG=testing" >> $GITEA_OUTPUT
+          else
+            echo "GH_BUILD_TAG=$version" >> $GITEA_OUTPUT
+            echo "GH_LATEST_TAG=latest" >> $GITEA_OUTPUT
+          fi
+      - name: Set platforms
+        id: set_platforms
+        run: |
+          platforms=""
+          if [ "${{ inputs.build_amd64 }}" = "true" ]; then
+            platforms="${platforms}linux/amd64,"
+          fi
+          if [ "${{ inputs.build_arm64 }}" = "true" ]; then
+            platforms="${platforms}linux/arm64,"
+          fi
+          if [ "${{ inputs.build_armv7 }}" = "true" ]; then
+            platforms="${platforms}linux/arm/v7,"
+          fi
+          if [ "${{ inputs.build_armv6 }}" = "true" ]; then
+            platforms="${platforms}linux/arm/v6,"
+          fi
+          platforms="${platforms%,}" # trim trailing comma
+          echo "PLATFORMS=$platforms" >> $GITEA_OUTPUT
+      - name: Show workflow variables
+        run: |
+          echo "Dockerfile: ${{ inputs.dockerfile }}"
+          echo "Build amd64: ${{ inputs.build_amd64 }}"
+          echo "Build arm64: ${{ inputs.build_arm64 }}"
+          echo "Build armv7: ${{ inputs.build_armv7 }}"
+          echo "Build armv6: ${{ inputs.build_armv6 }}"
+          echo "Version: ${{ inputs.version }}"
+          echo "Image for testing: ${{ inputs.image_for_testing }}"
+          echo "Arg 01 (string):  ${{ inputs.arg_01 }}"
+          echo "Arg 02 (boolean): ${{ inputs.arg_02 }}"
+          echo "------------------------------------------------------------------"
+          echo "DH_REPO: ${{ steps.repo_name.outputs.DH_REPO }}"
+          echo "BUILD_TIME: ${{ steps.date.outputs.BUILD_TIME }}"
+          echo "GH_BUILD_TAG: ${{ steps.tag.outputs.GH_BUILD_TAG }}"
+          echo "GH_LATEST_TAG: ${{ steps.tag.outputs.GH_LATEST_TAG }}"
+          echo "PLATFORMS: ${{ steps.set_platforms.outputs.PLATFORMS }}"
+  build:
+    runs-on: ubuntu-latest
+    needs: prep
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nodejs docker.io
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.${{ inputs.dockerfile }}
+          push: true
+          platforms: ${{ needs.prep.outputs.PLATFORMS }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.prep.outputs.DH_REPO }}:${{ inputs.dockerfile }}-${{ needs.prep.outputs.GH_BUILD_TAG }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.prep.outputs.DH_REPO }}:${{ inputs.dockerfile }}-${{ needs.prep.outputs.GH_LATEST_TAG }}
+          build-args: |-
+            BUILD_TIME=${{ needs.prep.outputs.BUILD_TIME }}
+            DOCKERFILE=${{ inputs.dockerfile }}
+            IMAGE_FOR_TESTING=${{ inputs.image_for_testing }}
+            VERSION=${{ inputs.version }}
+            ARG_02=${{ inputs.arg_02 }}
+            ${{ inputs.arg_01 && format('ARG_01={0}', inputs.arg_01) }}
+            # ARG_01=${{ inputs.arg_01 }}
