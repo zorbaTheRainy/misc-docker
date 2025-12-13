@@ -4,6 +4,39 @@ This repository contains Docker images for various miscellaneous tools and appli
 
 ## Dockerfiles
 
+### caddy
+
+**Source URL:** https://github.com/caddyserver/caddy
+
+**Description:** A containerized version of Caddy, a powerful, enterprise-ready, open source web server with automatic HTTPS written in Go.
+
+**Changes vs. Vanilla Version:**
+- Built with additional modules: Layer 4 (TCP/UDP) support, Cloudflare DNS provider, authentication providers, GeoIP2, CrowdSec bouncer, Coraza WAF, and more.
+- Conditional build: external (WAN) builds include GeoIP2, CrowdSec, and Coraza modules; internal (LAN) builds exclude them.
+- Includes bash shell with custom profile.
+- Metadata labels for build information.
+
+#### Files in programs/caddy
+
+- **docker-compose.yml**: Docker Compose configuration to run the Caddy container. Uses host networking, mounts Caddyfile and config volume. Requires environment variables for Cloudflare API token and target domain.
+
+### dnsmasq
+
+**Source URL:** https://github.com/jpillora/docker-dnsmasq
+
+**Description:** A containerized version of dnsmasq, a lightweight DHCP and caching DNS server.
+
+**Changes vs. Vanilla Version:**
+- Includes webproc for web-based configuration interface.
+- Pre-configured with example dnsmasq.conf for Cloudflare DNS servers.
+- Supports multiple architectures: amd64, arm64, armv7, armv6.
+- Includes bash shell with custom profile.
+- Exposes ports for DNS (53), DHCP (67/udp, 68/udp), and webproc (8080).
+
+#### Files in programs/dnsmasq
+
+- **dnsmasq.conf**: Configuration file for dnsmasq. Includes logging, upstream DNS servers (Cloudflare), and example domain-specific server and address mappings.
+
 ### organize-tool
 
 **Source URL:** https://github.com/tfeldmann/organize
@@ -27,7 +60,7 @@ This repository contains Docker images for various miscellaneous tools and appli
 ## Usage
 
 1. Clone this repository.
-2. Choose a Dockerfile (e.g., `Dockerfile.organize-tool`).
-3. Build the image using the GitHub Actions workflow or manually: `docker build -f Dockerfile.organize-tool -t your-tag .`
-4. Run the container as per the example in `programs/organize-tool/docker-compose.yml`.
+2. Choose a Dockerfile (e.g., `Dockerfile.caddy`, `Dockerfile.dnsmasq`, or `Dockerfile.organize-tool`).
+3. Build the image using the GitHub/Gitea/Forgejo Actions workflow or manually: `docker build -f Dockerfile.caddy -t your-tag .`
+4. Run the container as per the examples in `programs/caddy/docker-compose.yml`, `programs/dnsmasq/`, or `programs/organize-tool/docker-compose.yml`.
 
