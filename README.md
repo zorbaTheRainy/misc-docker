@@ -20,6 +20,8 @@ This repository contains Docker images for various miscellaneous tools and appli
 
 - **docker-compose.yml**: Docker Compose configuration to run the Caddy container. Uses host networking, mounts Caddyfile and config volume. Requires environment variables for Cloudflare API token and target domain.
 
+---
+
 ### dnsmasq
 
 **Source URL:** https://github.com/jpillora/docker-dnsmasq
@@ -36,6 +38,8 @@ This repository contains Docker images for various miscellaneous tools and appli
 #### Files in programs/dnsmasq
 
 - **dnsmasq.conf**: Configuration file for dnsmasq. Includes logging, upstream DNS servers (Cloudflare), and example domain-specific server and address mappings.
+
+---
 
 ### organize-tool
 
