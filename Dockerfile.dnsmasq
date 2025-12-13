@@ -34,7 +34,7 @@ ARG TARGETVARIANT
 
 # add any user desired packages
 RUN apk update && \
-    apk add --no-cache bash nano \
+    apk add --no-cache --no-scripts bash nano \
     ;
 
 
@@ -61,7 +61,7 @@ COPY programs/dnsmasq/dnsmasq.conf /etc/dnsmasq.conf
 # integrate the files into the file system
 # fetch dnsmasq and webproc binary
 RUN apk update && \
-    apk --no-cache add dnsmasq-dnssec && \
+    apk --no-cache --no-scripts add dnsmasq-dnssec && \
     case "${TARGETARCH}" in \
         amd64)  gzip -d -c /tmp/webproc_amd64.gz > /usr/local/bin/webproc   ;; \
         arm64)  gzip -d -c /tmp/webproc_arm64.gz > /usr/local/bin/webproc   ;; \
