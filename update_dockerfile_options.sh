@@ -9,7 +9,8 @@ set -euo pipefail
 #   the workflow YAML file accordingly.
 # ###########################################################################
 
-WORKFLOW_FILE=".github/workflows/build-docker-image.yml"
+WORKFLOW_FILE_GITHUB=".github/workflows/build-docker-image.yml"
+WORKFLOW_FILE_GITEA=".gitea/workflows/build-docker-image.yml"
 
 # Ensure yq is installed
 if ! command -v yq >/dev/null 2>&1; then
@@ -33,6 +34,7 @@ echo "Updating workflow options with: $dockerfile_options"
 json_array=$(printf '%s\n' $dockerfile_options | jq -R . | jq -s .)
 
 # Update the workflow YAML file
-yq -i ".on.workflow_dispatch.inputs.dockerfile.options = $json_array" "$WORKFLOW_FILE"
+yq -i ".on.workflow_dispatch.inputs.dockerfile.options = $json_array" "$WORKFLOW_FILE_GITHUB"
+yq -i ".on.workflow_dispatch.inputs.dockerfile.options = $json_array" "$WORKFLOW_FILE_GITEA"
 
-echo "Updated $WORKFLOW_FILE with dockerfile options: $dockerfile_options"
+echo "Updated $WORKFLOW_FILE_GITHUB with dockerfile options: $dockerfile_options"
