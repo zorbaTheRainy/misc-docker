@@ -44,8 +44,8 @@ ARG DERIVED_ARG_01="builder"
 ARG DERIVED_ARG_01="builder"
 FROM caddy:${DERIVED_ARG_01} AS builder
 
-# Need to redeclare AGRS so RUN can see them <rolls eyes>
-# ARG ARG_01=latest # Caddy version e.g., "2.10.2"
+# Need to redeclare ARGs so RUN can see them <rolls eyes>
+ARG ARG_01=latest # Caddy version e.g., "2.10.2"
 ARG ARG_02=false  # Build for internal (LAN) usage, otherwise external (WAN)
 # ENV CADDY_VERSION="v$ARG_01"
 COPY ./programs/caddy/plugin_pins.json /tmp/plugin_pins.json
