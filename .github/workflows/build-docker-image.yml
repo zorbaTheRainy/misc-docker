@@ -134,6 +134,7 @@ jobs:
           echo "Image for testing: ${{ github.event.inputs.image_for_testing }}"
           echo "Arg 01 (string):  ${{ github.event.inputs.arg_01 }}"
           echo "Arg 02 (boolean): ${{ github.event.inputs.arg_02 }}"
+          echo "Hidden Arg 01: ${{ steps.set_hidden_args.outputs.hidden_arg_01 }}"
           echo "------------------------------------------------------------------"
           echo "DH_REPO: ${{ steps.repo_name.outputs.DH_REPO }}"
           echo "BUILD_TIME: ${{ steps.date.outputs.BUILD_TIME }}"
