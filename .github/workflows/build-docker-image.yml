@@ -27,7 +27,7 @@ on:
         type: boolean
         default: false
       tag_ver:
-        description: 'Image Tag's version id'
+        description: 'Image Tag version id'
         required: true
         default: '1.0.0'
       image_for_testing:
