@@ -1,0 +1,26 @@
+{
+  "2.9": {
+    "github.com/mholt/caddy-l4": "8c0c2e7",
+    "github.com/abiosoft/caddy-json-schema": "c4b7c9a",
+    "github.com/caddyserver/transform-encoder": "c3b6e3f",
+    "github.com/WeidiDeng/caddy-cloudflare-ip": "3e0d2c1",
+    "github.com/caddy-dns/cloudflare": "v0.0.0-20231101",
+    "github.com/greenpau/caddy-security": "v1.1.0",
+    "github.com/hairyhenderson/caddy-teapot-module": "v0.0.3-0",
+    "github.com/zhangjiayin/caddy-geoip2": "d2a4b7c",
+    "github.com/hslatman/caddy-crowdsec-bouncer": "v0.0.26",
+    "github.com/corazawaf/coraza-caddy": "v0.1.1"
+  },
+  "2.10": {
+    "github.com/mholt/caddy-l4": "d8b5f4e",
+    "github.com/abiosoft/caddy-json-schema": "1c0f7d2",
+    "github.com/caddyserver/transform-encoder": "a4c2e1b",
+    "github.com/WeidiDeng/caddy-cloudflare-ip": "9f2c1d0",
+    "github.com/caddy-dns/cloudflare": "v0.0.0-20240520",
+    "github.com/greenpau/caddy-security": "v1.2.0",
+    "github.com/hairyhenderson/caddy-teapot-module": "v0.0.4",
+    "github.com/zhangjiayin/caddy-geoip2": "f3d1a9c",
+    "github.com/hslatman/caddy-crowdsec-bouncer": "v0.0.29",
+    "github.com/corazawaf/coraza-caddy": "v0.2.0"
+  }
+}
