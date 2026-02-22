@@ -109,6 +109,20 @@ jobs:
           fi
           platforms="${platforms%,}" # trim trailing comma
           echo "PLATFORMS=$platforms" >> $GITHUB_OUTPUT
+      - name: Set Hidden Args
+        id: set_hidden_args
+        run: |
+          arg_01="${{ github.event.inputs.arg_01 }}"
+          hidden_arg_01=""
+          if [ "${{ github.event.inputs.dockerfile }}" = "caddy" ]; then
+            # If arg_01 is numeric (e.g., 2, 2.7, 2.7.1)
+            if [[ "$arg_01" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+              hidden_arg_01="${arg_01}-builder"
+            else
+              hidden_arg_01="builder"
+            fi
+          fi
+          echo "hidden_arg_01=$hidden_arg_01" >> $GITHUB_OUTPUT
       - name: Show workflow variables
         run: |
           echo "Dockerfile: ${{ github.event.inputs.dockerfile }}"
@@ -126,36 +140,36 @@ jobs:
           echo "GH_BUILD_TAG: ${{ steps.tag.outputs.GH_BUILD_TAG }}"
           echo "GH_LATEST_TAG: ${{ steps.tag.outputs.GH_LATEST_TAG }}"
           echo "PLATFORMS: ${{ steps.set_platforms.outputs.PLATFORMS }}"
-  build:
-    runs-on: ubuntu-latest
-    needs: prep
-    steps:
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile.${{ github.event.inputs.dockerfile }}
-          push: true
-          platforms: ${{ needs.prep.outputs.PLATFORMS }}
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.prep.outputs.DH_REPO }}:${{ github.event.inputs.dockerfile }}-${{ needs.prep.outputs.GH_BUILD_TAG }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.prep.outputs.DH_REPO }}:${{ github.event.inputs.dockerfile }}-${{ needs.prep.outputs.GH_LATEST_TAG }}
-          build-args: |-
-            BUILD_TIME=${{ needs.prep.outputs.BUILD_TIME }}
-            DOCKERFILE=${{ github.event.inputs.dockerfile }}
-            IMAGE_FOR_TESTING=${{ github.event.inputs.image_for_testing }}
-            VERSION=${{ github.event.inputs.version }}
-            ARG_02=${{ github.event.inputs.arg_02 }}
-            ${{ github.event.inputs.arg_01 && format('ARG_01={0}', github.event.inputs.arg_01) }}
-            # ARG_01=${{ github.event.inputs.arg_01 }}
+  # build:
+  #   runs-on: ubuntu-latest
+  #   needs: prep
+  #   steps:
+  #     - name: Login to DockerHub
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
+  #     - name: Build and push
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         file: Dockerfile.${{ github.event.inputs.dockerfile }}
+  #         push: true
+  #         platforms: ${{ needs.prep.outputs.PLATFORMS }}
+  #         tags: |
+  #           ${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.prep.outputs.DH_REPO }}:${{ github.event.inputs.dockerfile }}-${{ needs.prep.outputs.GH_BUILD_TAG }}
+  #           ${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.prep.outputs.DH_REPO }}:${{ github.event.inputs.dockerfile }}-${{ needs.prep.outputs.GH_LATEST_TAG }}
+  #         build-args: |-
+  #           BUILD_TIME=${{ needs.prep.outputs.BUILD_TIME }}
+  #           DOCKERFILE=${{ github.event.inputs.dockerfile }}
+  #           IMAGE_FOR_TESTING=${{ github.event.inputs.image_for_testing }}
+  #           VERSION=${{ github.event.inputs.version }}
+  #           ARG_02=${{ github.event.inputs.arg_02 }}
+  #           ${{ github.event.inputs.arg_01 && format('ARG_01={0}', github.event.inputs.arg_01) }}
+  #           # ARG_01=${{ github.event.inputs.arg_01 }}
