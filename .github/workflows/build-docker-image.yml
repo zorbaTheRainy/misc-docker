@@ -146,6 +146,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: prep
     steps:
+      - name: Dump merged workflow variables
+        run: |
+          echo "================ MERGED WORKFLOW VARIABLES ================"
+
+          # Build merged JSON:
+          merged_json=$(jq -n \
+            --argjson inputs "${{ toJson(github.event.inputs) }}" \
+            --argjson prep "${{ toJson(needs.prep.outputs) }}" \
+            --argjson env "$(env | jq -R 'split("=") | {(.[0]): .[1]}')" \
+            '{inputs: $inputs, prep_outputs: $prep, env: $env}')
+
+          # Print sorted: section.key=value
+          echo "$merged_json" | jq -r '
+            to_entries[] as $section |
+            $section.value
+            | to_entries[]
+            | "\($section.key).\(.key)=\(.value)"
+          ' | sort
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
