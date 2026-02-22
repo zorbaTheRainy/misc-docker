@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build-time args; passed from GitHub actions
+# make sure to redeclare these below in each stage (or right before FROM if FROM needs them, erased after FROM)
 ARG ARG_01=latest # Caddy version e.g., "2.10.2"
 ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
 ARG DERIVED_ARG_01="builder"
@@ -40,6 +41,7 @@ ARG DERIVED_ARG_01="builder"
 # Build Caddy with modules
 
 # ---- Build stage ----
+ARG DERIVED_ARG_01="builder"
 FROM caddy:${DERIVED_ARG_01} AS builder
 
 # Need to redeclare AGRS so RUN can see them <rolls eyes>
@@ -92,7 +94,10 @@ COPY programs/_bash/.profile /root/.profile
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 
 # Add metadata labels (visible via `docker inspect`)
-ARG VERSION DOCKERFILE IMAGE_FOR_TESTING ARG_01 ARG_02 BUILD_TIME
+ARG ARG_01=latest # Caddy version e.g., "2.10.2"
+ARG ARG_02=false  # Build for external (WAN) usage, otherwise internal (LAN)
+ARG DERIVED_ARG_01="builder"
+ARG VERSION DOCKERFILE IMAGE_FOR_TESTING BUILD_TIME
 LABEL org.opencontainers.image.created=${BUILD_TIME}
 LABEL org.opencontainers.image.version_custom=${VERSION}
 LABEL org.opencontainers.image.dockerfile=${DOCKERFILE}
