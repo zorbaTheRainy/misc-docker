@@ -26,8 +26,8 @@ on:
         description: 'linux/arm/v6 (32-bit; Pi 1/Zero)'
         type: boolean
         default: false
-      version:
-        description: 'Version tag'
+      tag_ver:
+        description: 'Image Tag's version id'
         required: true
         default: '1.0.0'
       image_for_testing:
@@ -66,23 +66,23 @@ jobs:
       - name: Set tags
         id: tag
         run: |
-          version="${{ github.event.inputs.version }}"
+          tag_ver="${{ github.event.inputs.tag_ver }}"
           dockerfile="${{ github.event.inputs.dockerfile }}"
       
           # If version starts with dockerfile, clean it up
-          if [[ "$version" == "$dockerfile"* ]]; then
-            version="${version#$dockerfile}"
-            version="${version#-}"
+          if [[ "$tag_ver" == "$dockerfile"* ]]; then
+            tag_ver="${tag_ver#$dockerfile}"
+            tag_ver="${tag_ver#-}"
           fi
       
           # Sanitize version for Docker/GitHub tag rules:
           # - Lowercase
           # - Replace invalid chars with '-'
           # - Trim leading/trailing separators
-          version="$(echo "$version" | tr '[:upper:]' '[:lower:]')"
-          version="$(echo "$version" | sed 's/[^a-z0-9_.-]/-/g')"
-          version="$(echo "$version" | sed 's/^-*//; s/-*$//')"
-          version="$(echo "$version" | cut -c1-128)"  # enforce max length
+          tag_ver="$(echo "$tag_ver" | tr '[:upper:]' '[:lower:]')"
+          tag_ver="$(echo "$tag_ver" | sed 's/[^a-z0-9_.-]/-/g')"
+          tag_ver="$(echo "$tag_ver" | sed 's/^-*//; s/-*$//')"
+          tag_ver="$(echo "$tag_ver" | cut -c1-128)"  # enforce max length
       
           # set the output variables
           if [ "${{ github.event.inputs.image_for_testing }}" = "true" ]; then
@@ -90,7 +90,7 @@ jobs:
             echo "GH_BUILD_TAG=$buildTag" >> $GITHUB_OUTPUT
             echo "GH_LATEST_TAG=testing" >> $GITHUB_OUTPUT
           else
-            echo "GH_BUILD_TAG=$version" >> $GITHUB_OUTPUT
+            echo "GH_BUILD_TAG=$tag_ver" >> $GITHUB_OUTPUT
             echo "GH_LATEST_TAG=latest" >> $GITHUB_OUTPUT
           fi
       - name: Set platforms
@@ -132,7 +132,7 @@ jobs:
           echo "Build arm64: ${{ github.event.inputs.build_arm64 }}"
           echo "Build armv7: ${{ github.event.inputs.build_armv7 }}"
           echo "Build armv6: ${{ github.event.inputs.build_armv6 }}"
-          echo "Version: ${{ github.event.inputs.version }}"
+          echo "Tag Version: ${{ github.event.inputs.tag_ver }}"
           echo "Image for testing: ${{ github.event.inputs.image_for_testing }}"
           echo "Arg 01 (string):  ${{ github.event.inputs.arg_01 }}"
           echo "Arg 02 (boolean): ${{ github.event.inputs.arg_02 }}"
@@ -202,7 +202,7 @@ jobs:
             BUILD_TIME=${{ needs.prep.outputs.BUILD_TIME }}
             DOCKERFILE=${{ github.event.inputs.dockerfile }}
             IMAGE_FOR_TESTING=${{ github.event.inputs.image_for_testing }}
-            VERSION=${{ github.event.inputs.version }}
+            VERSION=${{ github.event.inputs.tag_ver }}
             # ARG_01=${{ github.event.inputs.arg_01 }}
             ARG_02=${{ github.event.inputs.arg_02 }}
             # DERIVED_ARG_01=${{ needs.prep.outputs.DERIVED_ARG_01 }}
