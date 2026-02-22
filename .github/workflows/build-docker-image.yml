@@ -34,6 +34,7 @@ on:
         description: 'Is image for testing purposes?'
         required: true
         type: boolean
+        default: true
       arg_01:
         description: 'ARG for Dockerfile (string)'
         required: false
