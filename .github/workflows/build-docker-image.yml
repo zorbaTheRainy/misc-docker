@@ -151,17 +151,29 @@ jobs:
         run: |
           echo "================ MERGED WORKFLOW VARIABLES ================"
 
-          # Build merged JSON:
+          # Convert workflow inputs JSON string → real JSON
+          inputs_json=$(echo '${{ toJson(github.event.inputs) }}' | jq -r '.')
+          
+          # Convert prep outputs JSON string → real JSON
+          prep_json=$(echo '${{ toJson(needs.prep.outputs) }}' | jq -r '.')
+          
+          # Convert environment variables → JSON object
+          env_json=$(env | jq -Rn '
+            ( input | split("=") ) as $kv
+            | { ($kv[0]): $kv[1] }
+          ' | jq -s 'add')
+
+          # Merge into one JSON object
           merged_json=$(jq -n \
-            --argjson inputs "${{ toJson(github.event.inputs) }}" \
-            --argjson prep "${{ toJson(needs.prep.outputs) }}" \
-            --argjson env "$(env | jq -R 'split("=") | {(.[0]): .[1]}')" \
+            --argjson inputs "$inputs_json" \
+            --argjson prep "$prep_json" \
+            --argjson env "$env_json" \
             '{inputs: $inputs, prep_outputs: $prep, env: $env}')
 
-          # Print sorted: section.key=value
+          # Flatten + sort + print
           echo "$merged_json" | jq -r '
-            to_entries[] as $section |
-            $section.value
+            to_entries[] as $section
+            | $section.value
             | to_entries[]
             | "\($section.key).\(.key)=\(.value)"
           ' | sort
