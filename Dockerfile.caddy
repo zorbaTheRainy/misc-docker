@@ -44,56 +44,34 @@ ARG DERIVED_ARG_01="builder"
 ARG DERIVED_ARG_01="builder"
 FROM caddy:${DERIVED_ARG_01} AS builder
 
-# Need to redeclare ARGs so RUN can see them <rolls eyes>
+# Need to redeclare AGRS so RUN can see them <rolls eyes>
 ARG ARG_01=latest # Caddy version e.g., "2.10.2"
 ARG ARG_02=false  # Build for internal (LAN) usage, otherwise external (WAN)
 # ENV CADDY_VERSION="v$ARG_01"
-COPY ./programs/caddy/plugin_pins.json /tmp/plugin_pins.json
 RUN set -eux; \
-    RAW_VERSION="$ARG_01"; \
-    \
-    # Extract major.minor if numeric
-    if echo "$RAW_VERSION" | grep -Eq '^[0-9]+\.[0-9]+'; then \
-        KEY="$(echo "$RAW_VERSION" | cut -d. -f1,2)"; \
-    else \
-        echo "Non-numeric version ($RAW_VERSION), defaulting to latest"; \
-        KEY="latest"; \
-    fi; \
-    \
-    # Helper: get pin for plugin
-    get_pin() { \
-        PLUGIN="$1"; \
-        PIN=$(jq -r --arg v "$KEY" --arg p "$PLUGIN" '.[$v][$p] // ""' /tmp/plugin_pins.json); \
-        if [ -z "$PIN" ] || [ "$PIN" = "null" ]; then \
-            echo "--with $PLUGIN"; \
-        else \
-            echo "--with $PLUGIN@$PIN"; \
-        fi; \
-    }; \
-    \
     PLUGINS=""; \
     # Layer 4 (TCP/UDP) support
-    PLUGINS="$PLUGINS $(get_pin github.com/mholt/caddy-l4)"; \
+    PLUGINS="$PLUGINS --with github.com/mholt/caddy-l4"; \
     # Layer 4 (TCP/UDP) support - JSON schema validation
-    PLUGINS="$PLUGINS $(get_pin github.com/abiosoft/caddy-json-schema)"; \
+    PLUGINS="$PLUGINS --with github.com/abiosoft/caddy-json-schema"; \
     # Log encoder module for custom log formats 
-    PLUGINS="$PLUGINS $(get_pin github.com/caddyserver/transform-encoder)"; \
+    PLUGINS="$PLUGINS --with github.com/caddyserver/transform-encoder"; \
     # Cloudflare - IP ranges to identify CF visitors
-    PLUGINS="$PLUGINS $(get_pin github.com/WeidiDeng/caddy-cloudflare-ip)"; \
+    PLUGINS="$PLUGINS --with github.com/WeidiDeng/caddy-cloudflare-ip"; \
     # Cloudflare DNS provider
-    PLUGINS="$PLUGINS $(get_pin github.com/caddy-dns/cloudflare)"; \
+    PLUGINS="$PLUGINS --with github.com/caddy-dns/cloudflare"; \
     # Authentication: Basic, Local, LDAP, OpenID Connect, OAuth 2.0 
-    PLUGINS="$PLUGINS $(get_pin github.com/greenpau/caddy-security)"; \
+    PLUGINS="$PLUGINS --with github.com/greenpau/caddy-security"; \
     # Got to love the teapot
-    PLUGINS="$PLUGINS $(get_pin github.com/hairyhenderson/caddy-teapot-module)"; \
+    PLUGINS="$PLUGINS --with github.com/hairyhenderson/caddy-teapot-module@v0.0.3-0"; \
     if [ "$ARG_02" = "true" ]; then \
         echo "Building for an external (WAN) usage..."; \
         # GeoIP2 module
-        PLUGINS="$PLUGINS $(get_pin github.com/zhangjiayin/caddy-geoip2)"; \
+        PLUGINS="$PLUGINS --with github.com/zhangjiayin/caddy-geoip2"; \
         # CrowdSec bouncer
-        PLUGINS="$PLUGINS $(get_pin github.com/hslatman/caddy-crowdsec-bouncer)"; \
+        PLUGINS="$PLUGINS --with github.com/hslatman/caddy-crowdsec-bouncer"; \
         # Coraza WAF
-        PLUGINS="$PLUGINS $(get_pin github.com/corazawaf/coraza-caddy)"; \
+        PLUGINS="$PLUGINS --with github.com/corazawaf/coraza-caddy"; \
     else \
         echo "Building for an internal (LAN) usage..."; \
     fi; \
