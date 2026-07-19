@@ -68,13 +68,13 @@ jobs:
         run: |
           tag_ver="${{ github.event.inputs.tag_ver }}"
           dockerfile="${{ github.event.inputs.dockerfile }}"
-      
+
           # If version starts with dockerfile, clean it up
           if [[ "$tag_ver" == "$dockerfile"* ]]; then
             tag_ver="${tag_ver#$dockerfile}"
             tag_ver="${tag_ver#-}"
           fi
-      
+
           # Sanitize version for Docker/GitHub tag rules:
           # - Lowercase
           # - Replace invalid chars with '-'
@@ -83,7 +83,7 @@ jobs:
           tag_ver="$(echo "$tag_ver" | sed 's/[^a-z0-9_.-]/-/g')"
           tag_ver="$(echo "$tag_ver" | sed 's/^-*//; s/-*$//')"
           tag_ver="$(echo "$tag_ver" | cut -c1-128)"  # enforce max length
-      
+
           # set the output variables
           if [ "${{ github.event.inputs.image_for_testing }}" = "true" ]; then
             buildTag=$(date +%Y-%m-%d-%H-%M)
@@ -153,10 +153,10 @@ jobs:
 
           # Convert workflow inputs JSON string → real JSON
           inputs_json=$(echo '${{ toJson(github.event.inputs) }}' | jq -r '.')
-          
+
           # Convert prep outputs JSON string → real JSON
           prep_json=$(echo '${{ toJson(needs.prep.outputs) }}' | jq -r '.')
-          
+
           # Convert environment variables → JSON object
           env_json=$(env | jq -Rn '
             ( input | split("=") ) as $kv
@@ -178,18 +178,18 @@ jobs:
             | "\($section.key).\(.key)=\(.value)"
           ' | sort
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile.${{ github.event.inputs.dockerfile }}
