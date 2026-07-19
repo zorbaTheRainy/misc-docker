@@ -4,7 +4,7 @@
 FROM python:3.11-slim
 
 # ARG_01 = PUID:PGID (e.g., "1000:1000"), defaults to 1000:1000
-ARG ARG_01=1000:1000
+ARG ARG_01=1000:100
 
 # Latest supercronic releases: https://github.com/aptible/supercronic/releases
 ARG SUPERCRONIC_VERSION=v0.2.47
