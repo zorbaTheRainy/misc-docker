@@ -1,0 +1,112 @@
+name: Caddy Version Monitor
+
+on:
+  schedule:
+    - cron: '30 2 * * 1'  # Monday at 2:30 AM UTC
+  workflow_dispatch:
+
+env:
+  DH_REPO: misc_images
+  DOCKERFILE: caddy
+  CONTAINER_NAME: caddy
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.check.outputs.new_version }}
+      latest_version: ${{ steps.check.outputs.latest_version }}
+      should_build: ${{ steps.check.outputs.should_build }}
+    steps:
+      - name: Check for new Caddy version
+        id: check
+        run: |
+          # Get latest release from GitHub
+          LATEST=$(curl -fsSL https://api.github.com/repos/caddyserver/caddy/releases/latest | jq -r '.tag_name')
+          if [ -z "$LATEST" ] || [ "$LATEST" = "null" ]; then
+            echo "Failed to fetch latest Caddy version"
+            exit 1
+          fi
+          echo "Latest Caddy release: $LATEST"
+          echo "latest_version=$LATEST" >> $GITHUB_OUTPUT
+
+          # Strip leading 'v' for Docker tag
+          VERSION="${LATEST#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Check Docker Hub for existing tags
+          LAN_EXISTS=$(curl -fsSL "https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DH_REPO }}/tags/${{ env.DOCKERFILE }}-${VERSION}-lan" 2>/dev/null | jq -r '.name' || echo "")
+          WAN_EXISTS=$(curl -fsSL "https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DH_REPO }}/tags/${{ env.DOCKERFILE }}-${VERSION}-wan" 2>/dev/null | jq -r '.name' || echo "")
+
+          if [ "$LAN_EXISTS" = "${{ env.DOCKERFILE }}-${VERSION}-lan" ] && [ "$WAN_EXISTS" = "${{ env.DOCKERFILE }}-${VERSION}-wan" ]; then
+            echo "Both LAN and WAN images already exist for $VERSION"
+            echo "should_build=false" >> $GITHUB_OUTPUT
+          else
+            echo "New version detected: $VERSION (LAN exists: ${LAN_EXISTS:-no}, WAN exists: ${WAN_EXISTS:-no})"
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          fi
+
+          echo "new_version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        if: steps.check.outputs.should_build == 'true'
+        uses: actions/checkout@v6
+
+      - name: Login to DockerHub
+        if: steps.check.outputs.should_build == 'true'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up QEMU
+        if: steps.check.outputs.should_build == 'true'
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        if: steps.check.outputs.should_build == 'true'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push - LAN
+        if: steps.check.outputs.should_build == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.caddy
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DH_REPO }}:${{ env.DOCKERFILE }}-${{ steps.check.outputs.new_version }}-lan
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DH_REPO }}:${{ env.DOCKERFILE }}-lan-latest
+          build-args: |
+            BUILD_TIME=${{ github.run_id }}
+            DOCKERFILE=${{ env.DOCKERFILE }}
+            VERSION=${{ steps.check.outputs.new_version }}
+            ARG_01=${{ steps.check.outputs.new_version }}
+            ARG_02=false
+
+      - name: Build and push - WAN
+        if: steps.check.outputs.should_build == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.caddy
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DH_REPO }}:${{ env.DOCKERFILE }}-${{ steps.check.outputs.new_version }}-wan
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DH_REPO }}:${{ env.DOCKERFILE }}-wan-latest
+          build-args: |
+            BUILD_TIME=${{ github.run_id }}
+            DOCKERFILE=${{ env.DOCKERFILE }}
+            VERSION=${{ steps.check.outputs.new_version }}
+            ARG_01=${{ steps.check.outputs.new_version }}
+            ARG_02=true
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.check.outputs.should_build }}" = "false" ]; then
+            echo "Caddy ${{ steps.check.outputs.latest_version }} is already up to date."
+          else
+            echo "Built and pushed Caddy ${{ steps.check.outputs.new_version }} (LAN + WAN)"
+          fi
