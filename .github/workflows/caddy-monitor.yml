@@ -68,7 +68,7 @@ jobs:
       - name: Set platforms
         id: set_platforms
         run: |
-          echo "PLATFORMS=linux/amd64,linux/arm64" >> $GITHUB_OUTPUT
+          echo "PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6" >> $GITHUB_OUTPUT
 
       - name: Show workflow variables
         run: |
