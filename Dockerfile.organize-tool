@@ -3,9 +3,6 @@
 
 FROM python:3.11-slim
 
-# ARG_01 = PUID:PGID (e.g., "1000:1000"), defaults to 1000:1000
-ARG ARG_01=1000:1000
-
 # Latest supercronic releases: https://github.com/aptible/supercronic/releases
 ARG SUPERCRONIC_VERSION=v0.2.47
 ARG TARGETARCH
@@ -37,25 +34,14 @@ WORKDIR /app
 
 COPY programs/organize-tool/scripts_global/ /app/scripts_global/
 COPY programs/organize-tool/entrypoint.sh /entrypoint.sh
-COPY programs/organize-tool/config/crontab.default /app/config/crontab.default
+COPY programs/organize-tool/config/crontab.default /app/crontab.default
 
-ARG ARG_01=1000:1000
-RUN PUID="$(echo "$ARG_01" | cut -d: -f1)" \
- && PGID="$(echo "$ARG_01" | cut -d: -f2)" \
- && EXISTING_GROUP="$(getent group "$PGID" | cut -d: -f1)" \
- && if [ -n "$EXISTING_GROUP" ]; then \
-      GROUP_NAME="$EXISTING_GROUP"; \
-    else \
-      GROUP_NAME="appgroup"; \
-      groupadd -g "$PGID" "$GROUP_NAME"; \
-    fi \
- && useradd -l -u "$PUID" -g "$GROUP_NAME" -m appuser \
+# Placeholder user/group (911:911) — actual UID/GID set at runtime via PUID/PGID
+RUN groupadd -g 911 appgroup \
+ && useradd -l -u 911 -g appgroup -m appuser \
  && chmod +x /app/scripts_global/* /entrypoint.sh \
- && mkdir -p /app/state /app/scripts_user \
- && chown -R appuser:"$GROUP_NAME" /app
+ && mkdir -p /app/state /app/scripts_user
 
 ENV PATH="/app/scripts_user:/app/scripts_global:${PATH}"
-
-USER appuser
 
 ENTRYPOINT ["/entrypoint.sh"]

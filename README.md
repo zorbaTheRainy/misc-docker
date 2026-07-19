@@ -50,8 +50,8 @@ This repository contains Docker images for various miscellaneous tools and appli
 **Changes vs. Vanilla Version:**
 - Uses supercronic instead of cron for reliable scheduling.
 - amd64 and arm64 only (supercronic does not publish armv7/armv6 binaries).
-- PUID/PGID via workflow input `ARG_01` (e.g., `1000:1000`), defaults to 1000:1000.
-- Custom entrypoint validates config and starts supercronic.
+- PUID/PGID set at runtime via environment variables (LSIO-style), defaults to 911:911.
+- Custom entrypoint validates config, maps UID/GID, and starts supercronic.
 - Healthcheck via heartbeat file.
 
 #### Directory Structure
@@ -59,7 +59,6 @@ This repository contains Docker images for various miscellaneous tools and appli
 ```
 programs/organize-tool/
 ├── config/
-│   ├── crontab.default          # Default schedule (every 10 min)
 │   └── organize.yaml.example    # Example rules config
 ├── scripts_global/              # Built-in scripts (shipped with image)
 │   └── send-webhook.sh
@@ -75,14 +74,13 @@ programs/organize-tool/
 - `/app/scripts_global` — built-in scripts shipped with the image.
 - `/app/scripts_user` — user-provided scripts, bind-mounted from `scripts_user/`.
 - `/app/config/organize.yaml` — your rules file.
+- `/app/crontab.default` — built-in schedule (shipped with image, outside `/app/config/` so it won't be shadowed by a mount).
 
 #### Usage
 
-1. Copy `.env.example` to `.env` and set `WATCHED_DIR` to your watched directory.
+1. Copy `.env.example` to `.env` and set `PUID`, `PGID`, and `WATCHED_DIR`.
 2. Copy `config/organize.yaml.example` to `config/organize.yaml` and define your rules.
 3. Run: `docker compose up -d`
-
-When building via workflow, pass `ARG_01=PUID:PGID` to set file ownership (e.g., `ARG_01=1000:1000`).
 
 ---
 
