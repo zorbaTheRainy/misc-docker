@@ -4,7 +4,7 @@
 FROM python:3.11-slim
 
 # ARG_01 = PUID:PGID (e.g., "1000:1000"), defaults to 1000:1000
-ARG ARG_01=1000:100
+ARG ARG_01=1000:1000
 
 # Latest supercronic releases: https://github.com/aptible/supercronic/releases
 ARG SUPERCRONIC_VERSION=v0.2.47
@@ -27,12 +27,6 @@ RUN set -eu; \
 
 RUN pip install --no-cache-dir organize-tool
 
-ARG ARG_01=1000:1000
-RUN PUID="$(echo "$ARG_01" | cut -d: -f1)" \
- && PGID="$(echo "$ARG_01" | cut -d: -f2)" \
- && groupadd -g "$PGID" appgroup \
- && useradd -l -u "$PUID" -g appgroup -m appuser
-
 ARG VERSION DOCKERFILE IMAGE_FOR_TESTING BUILD_TIME
 LABEL org.opencontainers.image.created=${BUILD_TIME} \
       org.opencontainers.image.version=${VERSION} \
@@ -44,10 +38,21 @@ WORKDIR /app
 COPY programs/organize-tool/scripts_global/ /app/scripts_global/
 COPY programs/organize-tool/entrypoint.sh /entrypoint.sh
 COPY programs/organize-tool/config/crontab.default /app/config/crontab.default
-RUN chmod +x /app/scripts_global/* /entrypoint.sh
 
-RUN mkdir -p /app/state /app/scripts_user \
- && chown -R appuser:appgroup /app
+ARG ARG_01=1000:1000
+RUN PUID="$(echo "$ARG_01" | cut -d: -f1)" \
+ && PGID="$(echo "$ARG_01" | cut -d: -f2)" \
+ && EXISTING_GROUP="$(getent group "$PGID" | cut -d: -f1)" \
+ && if [ -n "$EXISTING_GROUP" ]; then \
+      GROUP_NAME="$EXISTING_GROUP"; \
+    else \
+      GROUP_NAME="appgroup"; \
+      groupadd -g "$PGID" "$GROUP_NAME"; \
+    fi \
+ && useradd -l -u "$PUID" -g "$GROUP_NAME" -m appuser \
+ && chmod +x /app/scripts_global/* /entrypoint.sh \
+ && mkdir -p /app/state /app/scripts_user \
+ && chown -R appuser:"$GROUP_NAME" /app
 
 ENV PATH="/app/scripts_user:/app/scripts_global:${PATH}"
 
