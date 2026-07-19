@@ -48,18 +48,54 @@ This repository contains Docker images for various miscellaneous tools and appli
 **Description:** A containerized version of the organize-tool, a Python-based file organizer that can automatically sort, rename, and manage files based on rules.
 
 **Changes vs. Vanilla Version:**
-- Added cron for scheduled execution.
-- Included additional dependencies: exiftool (for metadata extraction), poppler-utils (for PDF processing), curl.
-- Custom entrypoint script to install crontab and start cron in foreground.
-- Pre-configured with example config and crontab for every 15-minute runs.
-- Volumes for config, data, and cron files.
+- Uses supercronic instead of cron for reliable scheduling.
+- amd64 and arm64 only (supercronic does not publish armv7/armv6 binaries).
+- PUID/PGID via workflow input `ARG_01` (e.g., `1000:1000`), defaults to 1000:1000.
+- Custom entrypoint validates config and starts supercronic.
+- Healthcheck via heartbeat file.
 
-#### Files in programs/organize-tool
+#### Directory Structure
 
-- **config.yaml**: Configuration file defining rules for organize-tool. Currently contains a simple "Print hello" rule as an example. Customize this file to define your file organization rules.
-- **docker-compose.yml**: Docker Compose configuration to run the organize-tool container. Mounts volumes for crontab, config, and data directories. Uses the image `zorbatherainy/misc_images:organize-tool-latest`.
-- **docker-entrypoint.sh**: Bash script that serves as the container entrypoint. Checks for and installs the crontab file if present, ensures cron logs are visible, and starts cron in foreground mode.
-- **organize-tool-crontab**: Crontab file that schedules organize-tool to run every 15 minutes. Logs output to `/var/log/cron.log`. Modify the schedule as needed for your use case.
+```
+programs/organize-tool/
+├── config/
+│   ├── crontab.default          # Default schedule (every 10 min)
+│   └── organize.yaml.example    # Example rules config
+├── scripts_global/              # Built-in scripts (shipped with image)
+│   └── send-webhook.sh
+├── scripts_user/                # User-provided scripts (bind-mount)
+├── docker-compose.yml           # Run configuration
+├── entrypoint.sh                # Container entrypoint
+└── .env.example                 # Environment variables template
+```
+
+#### Path Conventions
+
+- `/watched` — root directory for files to organize. Create subdirectories for categories (e.g., `/watched/downloads`, `/watched/media`).
+- `/app/scripts_global` — built-in scripts shipped with the image.
+- `/app/scripts_user` — user-provided scripts, bind-mounted from `scripts_user/`.
+- `/app/config/organize.yaml` — your rules file.
+
+#### Usage
+
+1. Copy `.env.example` to `.env` and set `WATCHED_DIR` to your watched directory.
+2. Copy `config/organize.yaml.example` to `config/organize.yaml` and define your rules.
+3. Run: `docker compose up -d`
+
+When building via workflow, pass `ARG_01=PUID:PGID` to set file ownership (e.g., `ARG_01=1000:1000`).
+
+---
+
+## Automated Workflows
+
+### Caddy Version Monitor
+
+The `caddy-monitor.yml` workflow runs weekly (Monday at 2:30 AM UTC) and on manual dispatch. It:
+
+1. Checks the GitHub Releases API for the latest Caddy version.
+2. Checks Docker Hub for existing LAN and WAN images.
+3. If new: builds and pushes both variants (`caddy-<version>-lan`, `caddy-<version>-wan`).
+4. If already up to date: exits cleanly.
 
 ## Usage
 

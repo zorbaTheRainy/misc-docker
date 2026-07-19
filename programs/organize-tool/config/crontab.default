@@ -1,0 +1,6 @@
+# Default schedule, baked into the image. Bind-mount your own file to
+# config/crontab to override it entirely -- plain 5-field cron syntax +
+# command, no user column (supercronic runs everything as the container's
+# own user). Multiple lines = multiple independent schedules/config files.
+
+*/10 * * * * organize run /app/config/organize.yaml && touch /app/state/heartbeat

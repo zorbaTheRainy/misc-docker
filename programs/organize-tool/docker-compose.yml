@@ -1,14 +1,32 @@
-
-
 # ###################################################################
 # SERVICES
 # ###################################################################
 services:
-  organize-tool:
-    image: zorbatherainy/misc_images:organize-tool-latest
-    container_name: organize-tool-croned
-    restart: unless-stopped
+  organize:
+    build:
+      context: .
+      dockerfile: Dockerfile.organize-tool
+    container_name: organize-watcher
+    environment:
+      TZ: "${TZ:-UTC}"
+      WEBHOOK_BASE_URL: "${WEBHOOK_BASE_URL:-http://192.168.72.40:5432/webhook/}"
+      WEBHOOK_SITE: "${WEBHOOK_SITE:-hook_relay}"
     volumes:
-      - ./organize-tool-crontab:/etc/cron.d/organize-tool-crontab   # mount your crontab file here
-      - ./config.yaml:/config/config.yaml  # organize-tool config file
-      - ./data:/data # the directory you wish organized
+      - ./config/organize.yaml:/app/config/organize.yaml:rw
+      # - ./config/crontab:/app/config/crontab:ro   # optional, overrides the image's baked-in default schedule
+      - ./scripts_user:/app/scripts_user:ro
+      - ${WATCHED_DIR:-/path/to/watched}:/watched
+      - organize_state:/app/state
+    healthcheck:
+      test: ["CMD-SHELL", "find /app/state/heartbeat -mmin -20 | grep -q ."]
+      interval: 5m
+      timeout: 5s
+      retries: 3
+      start_period: 2m
+    restart: unless-stopped
+
+# ###################################################################
+# VOLUMES
+# ###################################################################
+volumes:
+  organize_state:

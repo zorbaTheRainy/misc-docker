@@ -1,46 +1,56 @@
 # https://github.com/tfeldmann/organize
+# Supercronic-based build with multi-arch support
 
-FROM python:3.12-slim
+FROM python:3.11-slim
 
-# Add metadata labels (visible via `docker inspect`)
-LABEL org.opencontainers.image.created=$BUILD_TIME \
-      org.opencontainers.image.version=$VERSION \
-      org.opencontainers.image.dockerfile=$DOCKERFILE \
-      org.opencontainers.image.image_for_testing=$IMAGE_FOR_TESTING
-      
-# Set the default config file location
-ENV ORGANIZE_CONFIG=/config/config.yaml
+# ARG_01 = PUID:PGID (e.g., "1000:1000"), defaults to 1000:1000
+ARG ARG_01=1000:1000
 
-# Install cron and organize-tool add-ons
-RUN apt-get -y update && apt-get install -y --no-install-recommends \
-    exiftool \
-    poppler-utils \
-    cron \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Latest supercronic releases: https://github.com/aptible/supercronic/releases
+ARG SUPERCRONIC_VERSION=v0.2.47
+ARG TARGETARCH
 
-# Install organize
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl tzdata ca-certificates bash busybox jq \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN set -eu; \
+    case "$TARGETARCH" in \
+      amd64) bin=supercronic-linux-amd64; sha1=712d2ece75da6f6e530192a151488578153e4e96 ;; \
+      arm64) bin=supercronic-linux-arm64; sha1=93323899ddca3f1198f1796a4bf4418ed1e7982e ;; \
+      *) echo "unsupported TARGETARCH: $TARGETARCH" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSLO "https://github.com/aptible/supercronic/releases/download/${SUPERCRONIC_VERSION}/${bin}"; \
+    echo "${sha1}  ${bin}" | sha1sum -c -; \
+    install -m 755 "$bin" /usr/local/bin/supercronic; \
+    rm "$bin"
+
 RUN pip install --no-cache-dir organize-tool
 
-# Copy needed files
-COPY programs/organize-tool/config.yaml /config/config.yaml
-COPY programs/organize-tool/organize-tool-crontab /etc/cron.d/organize-tool-crontab
-COPY programs/organize-tool/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+ARG ARG_01=1000:1000
+RUN PUID="${ARG_01%%:*}" \
+ && PGID="${ARG_01#*:}" \
+ && groupadd -g "$PGID" appgroup \
+ && useradd -l -u "$PUID" -g appgroup -m appuser
 
-# Add metadata labels (visible via `docker inspect`)
-ARG VERSION DOCKERFILE IMAGE_FOR_TESTING ARG_01 ARG_02 BUILD_TIME
-LABEL org.opencontainers.image.created=${BUILD_TIME}
-LABEL org.opencontainers.image.version_custom=${VERSION}
-LABEL org.opencontainers.image.dockerfile=${DOCKERFILE}
-LABEL org.opencontainers.image.image_for_testing=${IMAGE_FOR_TESTING}
-# LABEL org.opencontainers.image.arg_01=${ARG_01}
-# LABEL org.opencontainers.image.arg_02=${ARG_02}
+ARG VERSION DOCKERFILE IMAGE_FOR_TESTING BUILD_TIME
+LABEL org.opencontainers.image.created=${BUILD_TIME} \
+      org.opencontainers.image.version=${VERSION} \
+      org.opencontainers.image.dockerfile=${DOCKERFILE} \
+      org.opencontainers.image.image_for_testing=${IMAGE_FOR_TESTING}
 
-# Create directories
 WORKDIR /app
-VOLUME ["/config", "/data", "/etc/cron.d"]
 
+COPY programs/organize-tool/scripts_global/ /app/scripts_global/
+COPY programs/organize-tool/entrypoint.sh /entrypoint.sh
+COPY programs/organize-tool/config/crontab.default /app/config/crontab.default
+RUN chmod +x /app/scripts_global/* /entrypoint.sh
 
-# Default command runs cron in foreground
-CMD ["docker-entrypoint.sh"]
+RUN mkdir -p /app/state /app/scripts_user \
+ && chown -R appuser:appgroup /app
+
+ENV PATH="/app/scripts_user:/app/scripts_global:${PATH}"
+
+USER appuser
+
+ENTRYPOINT ["/entrypoint.sh"]

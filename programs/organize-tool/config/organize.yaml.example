@@ -1,0 +1,38 @@
+# Copy to config/organize.yaml and bind-mount it into the container at
+# /app/config/organize.yaml. Validate changes with:
+#   docker compose -f docker-compose.yml exec organize organize check /app/config/organize.yaml
+#
+# organize-tool has no built-in "already handled this file" tracking between
+# runs, so each rule needs to be idempotent by construction -- either the
+# matched action moves/deletes/renames the item so it can't match again, or
+# your script maintains its own sentinel/state file.
+#
+# /watched is the root directory for files to organize. Create subdirectories
+# for categories (e.g. /watched/downloads, /watched/media, /watched/books)
+# and write rules targeting each subdirectory.
+
+rules:
+  - name: notify on new files
+    locations:
+      - /watched
+    filters:
+      - extension:
+          - m4b
+          - epub
+          - cbz
+      - created:
+          hours: 1
+          mode: newer
+    actions:
+      - shell: 'send-webhook organize "{path}"'
+      # Uncomment to make this rule self-idempotent by relocating the item
+      # once notified, instead of writing your own sentinel file:
+      # - move: /watched/notified/
+
+  - name: run a custom script instead of the webhook
+    locations:
+      - /watched/other
+    filters:
+      - extension: txt
+    actions:
+      - shell: 'my-custom-script.sh "{path}"'
