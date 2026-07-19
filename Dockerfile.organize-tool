@@ -28,8 +28,8 @@ RUN set -eu; \
 RUN pip install --no-cache-dir organize-tool
 
 ARG ARG_01=1000:1000
-RUN PUID="${ARG_01%%:*}" \
- && PGID="${ARG_01#*:}" \
+RUN PUID="$(echo "$ARG_01" | cut -d: -f1)" \
+ && PGID="$(echo "$ARG_01" | cut -d: -f2)" \
  && groupadd -g "$PGID" appgroup \
  && useradd -l -u "$PUID" -g appgroup -m appuser
 
