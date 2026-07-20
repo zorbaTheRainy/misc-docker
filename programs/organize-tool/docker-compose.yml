@@ -18,16 +18,16 @@ services:
       PUID: "${PUID:-1000}"
       PGID: "${PGID:-100}"
       # Any other ENVs needed for the sciprt sot work (e.g., the global send_webhook.py script)
-      WEBHOOK_BASE_URL: "${WEBHOOK_BASE_URL:-http://192.168.72.40:5432/webhook/}"
+      WEBHOOK_BASE_URL: "${WEBHOOK_BASE_URL:-http://localhost:5432/webhook/}"
       WEBHOOK_SITE: "${WEBHOOK_SITE:-hook_relay}"
     volumes:
       - /etc/localtime:/etc/localtime:ro                             # sync to host time (and avoid the TZ Env variable)
       # Config mappings
-      - /home/REMOVED/gitcode/lan/webhooks/hooks/organize-tool/config/organize.yaml:/app/config/:ro
+      - ${HOME}/gitcode/lan/webhooks/hooks/organize-tool/config/organize.yaml:/app/config/:ro
       - organize_state:/app/state                                     # persists supercronic run state
       #  Data & Scripts mappings
       # - ./scripts_user:/app/scripts_user:ro
-      - /mnt/920p/Incoming_Files/2_AutoPirate/2_Processing/organize_watched:/watched
+      - /organize_watched:/watched
     healthcheck:
       test: ["CMD-SHELL", "find /app/state/heartbeat -mmin -20 | grep -q ."]
       interval: 5m

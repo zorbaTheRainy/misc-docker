@@ -36,12 +36,19 @@ COPY programs/organize-tool/scripts_global/ /app/scripts_global/
 COPY programs/organize-tool/entrypoint.sh /entrypoint.sh
 COPY programs/organize-tool/config/crontab.default /app/crontab.default
 
+
 # Placeholder user/group (911:911) — actual UID/GID set at runtime via PUID/PGID
 RUN groupadd -g 911 appgroup \
  && useradd -l -u 911 -g appgroup -m appuser \
  && chmod +x /app/scripts_global/* /entrypoint.sh \
  && mkdir -p /app/state /app/scripts_user
 
-ENV PATH="/app/scripts_user:/app/scripts_global:${PATH}"
+ # bash aliases
+ COPY programs/_bash/.bashrc /root/.bashrc
+ COPY programs/_bash/.profile /root/.profile
+ COPY programs/_bash/.bashrc /home/appgroup/.bashrc
+ COPY programs/_bash/.profile /home/appgroup/.profile
+ 
+ ENV PATH="/app/scripts_user:/app/scripts_global:${PATH}"
 
 ENTRYPOINT ["/entrypoint.sh"]
