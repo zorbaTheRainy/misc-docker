@@ -26,7 +26,7 @@ rules:
           hours: 1
           mode: newer
     actions:
-      - shell: 'send-webhook organize "{path}"'
+      - shell: 'generic_webhook_sender.sh organize "{path}"'
       # Uncomment to make this rule self-idempotent by relocating the item
       # once notified, instead of writing your own sentinel file:
       # - move: /watched/notified/

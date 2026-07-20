@@ -26,8 +26,9 @@
 # All methods are silent and never block; errors are suppressed.
 #
 
-# Webhook base URL (can be overridden by environment variable)
-WEBHOOK_BASE_URL="${WEBHOOK_BASE_URL:-http://localhost:5432/webhook/"}${1}
+# Webhook base URL (can be overridden by environment variable).
+# Positional args stay in the JSON payload only; they are not part of the URL.
+WEBHOOK_BASE_URL="${WEBHOOK_BASE_URL:-http://localhost:5432/webhook/}"
 
 # Webhook site name (can be overridden by environment variable)
 WEBHOOK_SITE="${WEBHOOK_SITE:-hook_relay}"
