@@ -19,7 +19,8 @@ if [ "$(id -u appuser)" != "$PUID" ] || [ "$(id -g appuser)" != "$PGID" ]; then
     usermod -u "$PUID" -g "$PGID" appuser 2>/dev/null || true
 fi
 
-chown -R appuser:"$GROUP_NAME" /app
+# Only chown writable paths — /app/config may be a read-only mount
+chown -R appuser:"$GROUP_NAME" /home/appuser /app/crontab.default 2>/dev/null || true
 
 # ── Config validation ──────────────────────────────────────────────
 CONFIG=/app/config/organize.yaml
