@@ -32,7 +32,7 @@ if [ ! -f "$CONFIG" ]; then
 fi
 
 echo "entrypoint: validating $CONFIG"
-exec su -s /bin/bash -c "organize check '$CONFIG'" appuser
+su -s /bin/bash -c "organize check '$CONFIG'" appuser
 
 if [ -f "$CRONTAB" ]; then
     echo "entrypoint: using mounted crontab at $CRONTAB"
