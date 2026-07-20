@@ -81,6 +81,7 @@ programs/organize-tool/
 1. Copy `.env.example` to `.env` and set `PUID`, `PGID`, and `WATCHED_DIR`.
 2. Copy `config/organize.yaml.example` to `config/organize.yaml` and define your rules.
 3. Run: `docker compose up -d`
+4. Shell access: `docker exec -u appuser -it organize-watcher bash` (requires `-u appuser` since the entrypoint runs as root for UID/GID mapping).
 
 ---
 

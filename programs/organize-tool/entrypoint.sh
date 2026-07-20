@@ -32,7 +32,7 @@ if [ ! -f "$CONFIG" ]; then
 fi
 
 echo "entrypoint: validating $CONFIG"
-su -s /bin/bash -c "organize check '$CONFIG'" appuser
+runuser -u appuser -- organize check "$CONFIG"
 
 if [ -f "$CRONTAB" ]; then
     echo "entrypoint: using mounted crontab at $CRONTAB"
@@ -43,4 +43,4 @@ fi
 
 # ── Start supercronic as appuser ───────────────────────────────────
 echo "entrypoint: starting supercronic with $CRONTAB"
-exec su -s /bin/bash -c "exec supercronic '$CRONTAB'" appuser
+exec runuser -u appuser -- supercronic "$CRONTAB"

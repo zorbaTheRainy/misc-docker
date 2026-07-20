@@ -1,0 +1,11 @@
+# Prepend to /etc/bash.bashrc so ~/.bashrc loads for non-interactive
+# exec sessions too (e.g. "docker exec <ctr> bash -c '...'").
+# The stock Debian bashrc bails early when PS1 is unset.
+#
+# Usage in Dockerfile (for images that run as non-root):
+#   COPY programs/_bash/bashrc.append /tmp/bashrc.append
+#   RUN cat /tmp/bashrc.append /etc/bash.bashrc > /etc/bash.bashrc.tmp \
+#    && mv /etc/bash.bashrc.tmp /etc/bash.bashrc \
+#    && rm /tmp/bashrc.append
+#
+[ -f ~/.bashrc ] && . ~/.bashrc
