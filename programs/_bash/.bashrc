@@ -1,3 +1,10 @@
+# Interactive shells only. Non-interactive bash (scripts, bash -c without -i)
+# must not pick up aliases like `rm -i` / `cp -i`.
+case $- in
+  *i*) ;;
+  *) return ;;
+esac
+
 alias bye=exit
 alias cls=clear
 alias cp='cp -i'

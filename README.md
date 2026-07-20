@@ -50,22 +50,24 @@ This repository contains Docker images for various miscellaneous tools and appli
 **Changes vs. Vanilla Version:**
 - Uses supercronic instead of cron for reliable scheduling.
 - amd64 and arm64 only (supercronic does not publish armv7/armv6 binaries).
-- PUID/PGID set at runtime via environment variables (LSIO-style), defaults to 911:911.
-- Custom entrypoint validates config, maps UID/GID, and starts supercronic.
-- Healthcheck via heartbeat file.
+- PUID/PGID set at runtime via environment variables (LSIO-style); image defaults 911:911.
+- Custom entrypoint validates config, maps UID/GID, prints the active crontab, and starts supercronic.
+- Scheduled runs go through `run-organize.sh` so `docker logs` shows start/end and organize output.
+- Healthcheck via heartbeat file under `/app/state`.
 
 #### Directory Structure
 
 ```
 programs/organize-tool/
 ├── config/
+│   ├── crontab.default          # Baked-in schedule (copied to /app/crontab.default)
 │   └── organize.yaml.example    # Example rules config
 ├── scripts_global/              # Built-in scripts (shipped with image)
-│   └── send-webhook.sh
+│   ├── generic_webhook_sender.sh
+│   └── run-organize.sh          # Logged wrapper for scheduled organize runs
 ├── scripts_user/                # User-provided scripts (bind-mount)
 ├── docker-compose.yml           # Run configuration
-├── entrypoint.sh                # Container entrypoint
-└── .env.example                 # Environment variables template
+└── entrypoint.sh                # Container entrypoint
 ```
 
 #### Path Conventions
@@ -73,15 +75,20 @@ programs/organize-tool/
 - `/watched` — root directory for files to organize. Create subdirectories for categories (e.g., `/watched/downloads`, `/watched/media`).
 - `/app/scripts_global` — built-in scripts shipped with the image.
 - `/app/scripts_user` — user-provided scripts, bind-mounted from `scripts_user/`.
-- `/app/config/organize.yaml` — your rules file.
-- `/app/crontab.default` — built-in schedule (shipped with image, outside `/app/config/` so it won't be shadowed by a mount).
+- `/app/config/organize.yaml` — your rules file (mount a **directory** at `/app/config`).
+- `/app/config/crontab` — optional override schedule; if missing, `/app/crontab.default` is used.
+- `/app/crontab.default` — built-in schedule (outside `/app/config/` so a config mount cannot hide it).
+- `/app/state/heartbeat` — touched after each successful run (healthcheck).
 
 #### Usage
 
-1. Copy `.env.example` to `.env` and set `PUID`, `PGID`, and `WATCHED_DIR`.
-2. Copy `config/organize.yaml.example` to `config/organize.yaml` and define your rules.
-3. Run: `docker compose up -d`
-4. Shell access: `docker exec -u appuser -it organize-watcher bash` (requires `-u appuser` since the entrypoint runs as root for UID/GID mapping).
+1. Put `organize.yaml` (and optionally `crontab`) in a host config directory.
+2. Point compose at that directory: `.../config:/app/config:ro`, plus your `/watched` path and `organize_state` volume.
+3. Set `PUID`/`PGID` if needed for host volume ownership; set `WEBHOOK_*` if you use webhooks.
+4. Run: `docker compose up -d`
+5. Logs: `docker logs -f organize-watcher` (entrypoint dumps the crontab; each run is prefixed `[run-organize]` / `[organize]`).
+6. Shell: `docker exec -u appuser -it organize-watcher bash` (use `-it` so `.bashrc` aliases load; image entrypoint runs as root only for UID mapping).
+7. Optional: `SUPERCRONIC_DEBUG=1` for extra supercronic schedule logging.
 
 ---
 

@@ -36,16 +36,14 @@ COPY programs/organize-tool/scripts_global/ /app/scripts_global/
 COPY programs/organize-tool/entrypoint.sh /entrypoint.sh
 COPY programs/organize-tool/config/crontab.default /app/crontab.default
 
-
 # Placeholder user/group (911:911) — actual UID/GID set at runtime via PUID/PGID
 RUN groupadd -g 911 appgroup \
  && useradd -l -u 911 -g appgroup -d /home/appuser -s /bin/bash appuser \
- && mkdir -p /home/appuser/.local/state \
- && chown -R appuser:appgroup /home/appuser \
- && chmod +x /app/scripts_global/* /entrypoint.sh \
- && mkdir -p /app/state /app/scripts_user
+ && mkdir -p /home/appuser/.local/state /app/state /app/scripts_user \
+ && chown -R appuser:appgroup /home/appuser /app/state \
+ && chmod +x /app/scripts_global/* /entrypoint.sh
 
-# bash aliases — source user .bashrc for non-interactive exec sessions too
+# Source ~/.bashrc for interactive and non-interactive bash (docker exec bash -c, etc.)
 COPY programs/_bash/bashrc.append /tmp/bashrc.append
 RUN cat /tmp/bashrc.append /etc/bash.bashrc > /etc/bash.bashrc.tmp \
  && mv /etc/bash.bashrc.tmp /etc/bash.bashrc \
@@ -54,7 +52,12 @@ COPY programs/_bash/.bashrc /root/.bashrc
 COPY programs/_bash/.profile /root/.profile
 COPY programs/_bash/.bashrc /home/appuser/.bashrc
 COPY programs/_bash/.profile /home/appuser/.profile
+RUN chown appuser:appgroup /home/appuser/.bashrc /home/appuser/.profile
 
-ENV PATH="/app/scripts_user:/app/scripts_global:${PATH}"
+# Non-interactive bash does not read bashrc unless BASH_ENV is set.
+# Interactive shells (docker exec -it ... bash) still read /etc/bash.bashrc + ~/.bashrc.
+# Aliases live behind an interactive-only guard in ~/.bashrc so scripts stay safe.
+ENV PATH="/app/scripts_user:/app/scripts_global:${PATH}" \
+    BASH_ENV=/etc/bash.bashrc
 
 ENTRYPOINT ["/entrypoint.sh"]

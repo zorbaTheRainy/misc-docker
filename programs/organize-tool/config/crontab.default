@@ -2,5 +2,7 @@
 # config/crontab to override it entirely -- plain 5-field cron syntax +
 # command, no user column (supercronic runs everything as the container's
 # own user). Multiple lines = multiple independent schedules/config files.
+#
+# run-organize.sh logs timestamps and prefixes organize output for docker logs.
 
-*/10 * * * * organize run /app/config/organize.yaml && touch /app/state/heartbeat
+*/10 * * * * /app/scripts_global/run-organize.sh /app/config/organize.yaml
