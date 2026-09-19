@@ -44,8 +44,8 @@ jobs:
           VERSION="${LATEST#v}"
 
           # Check Docker Hub for existing tags
-          LAN_EXISTS=$(curl -fsSL "https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/misc_images/caddy-${VERSION}-lan" 2>/dev/null | jq -r '.name' || echo "")
-          WAN_EXISTS=$(curl -fsSL "https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/misc_images/caddy-${VERSION}-wan" 2>/dev/null | jq -r '.name' || echo "")
+          LAN_EXISTS=$(curl -fsSL "https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/misc_images/tags/caddy-${VERSION}-lan" 2>/dev/null | jq -r '.name' || echo "")
+          WAN_EXISTS=$(curl -fsSL "https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/misc_images/tags/caddy-${VERSION}-wan" 2>/dev/null | jq -r '.name' || echo "")
 
           if [ "$LAN_EXISTS" = "caddy-${VERSION}-lan" ] && [ "$WAN_EXISTS" = "caddy-${VERSION}-wan" ]; then
             echo "Both LAN and WAN images already exist for $VERSION"
