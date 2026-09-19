@@ -34,7 +34,7 @@ jobs:
         id: check
         run: |
           # Get latest release from GitHub
-          LATEST=$(curl -fsSL https://api.github.com/repos/caddyserver/caddy/releases/latest | jq -r '.tag_name')
+          LATEST=$(curl -fsSL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/caddyserver/caddy/releases/latest | jq -r '.tag_name')
           if [ -z "$LATEST" ] || [ "$LATEST" = "null" ]; then
             echo "Failed to fetch latest Caddy version"
             exit 1
