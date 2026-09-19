@@ -15,7 +15,8 @@ jobs:
       GH_LATEST_TAG: ${{ steps.check.outputs.GH_LATEST_TAG }}
       PLATFORMS: ${{ steps.set_platforms.outputs.PLATFORMS }}
       VERSION: ${{ steps.check.outputs.VERSION }}
-      SHOULD_BUILD: ${{ steps.check.outputs.should_build }}
+      BUILD_LAN: ${{ steps.check.outputs.build_lan }}
+      BUILD_WAN: ${{ steps.check.outputs.build_wan }}
       DERIVED_ARG_01: ${{ steps.check.outputs.DERIVED_ARG_01 }}
     steps:
       - name: Setup DockerHub Repo Name
@@ -49,10 +50,22 @@ jobs:
 
           if [ "$LAN_EXISTS" = "caddy-${VERSION}-lan" ] && [ "$WAN_EXISTS" = "caddy-${VERSION}-wan" ]; then
             echo "Both LAN and WAN images already exist for $VERSION"
-            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "build_lan=false" >> $GITHUB_OUTPUT
+            echo "build_wan=false" >> $GITHUB_OUTPUT
           else
             echo "New version detected: $VERSION (LAN exists: ${LAN_EXISTS:-no}, WAN exists: ${WAN_EXISTS:-no})"
-            echo "should_build=true" >> $GITHUB_OUTPUT
+            if [ "$LAN_EXISTS" = "caddy-${VERSION}-lan" ]; then
+              echo "LAN image already exists, skipping LAN build"
+              echo "build_lan=false" >> $GITHUB_OUTPUT
+            else
+              echo "build_lan=true" >> $GITHUB_OUTPUT
+            fi
+            if [ "$WAN_EXISTS" = "caddy-${VERSION}-wan" ]; then
+              echo "WAN image already exists, skipping WAN build"
+              echo "build_wan=false" >> $GITHUB_OUTPUT
+            else
+              echo "build_wan=true" >> $GITHUB_OUTPUT
+            fi
           fi
 
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
@@ -79,14 +92,15 @@ jobs:
           echo "GH_BUILD_TAG: ${{ steps.check.outputs.GH_BUILD_TAG }}"
           echo "GH_LATEST_TAG: ${{ steps.check.outputs.GH_LATEST_TAG }}"
           echo "PLATFORMS: ${{ steps.set_platforms.outputs.PLATFORMS }}"
-          echo "SHOULD_BUILD: ${{ steps.check.outputs.should_build }}"
+          echo "BUILD_LAN: ${{ steps.check.outputs.build_lan }}"
+          echo "BUILD_WAN: ${{ steps.check.outputs.build_wan }}"
           echo "DERIVED_ARG_01: ${{ steps.check.outputs.DERIVED_ARG_01 }}"
           echo "------------------------------------------------------------------"
 
   build-lan:
     runs-on: ubuntu-latest
     needs: prep
-    if: needs.prep.outputs.SHOULD_BUILD == 'true'
+    if: needs.prep.outputs.BUILD_LAN == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -127,7 +141,7 @@ jobs:
   build-wan:
     runs-on: ubuntu-latest
     needs: prep
-    if: needs.prep.outputs.SHOULD_BUILD == 'true'
+    if: needs.prep.outputs.BUILD_WAN == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
